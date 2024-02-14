@@ -1,0 +1,132 @@
+---
+title: Game Progression
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+```{python}
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from IPython.display import display, Markdown
+
+
+def calculate_item_metrics(item):
+    net_gain = (item["amount_per_yield"] * item["amount_of_yields"]
+                * item["resell_price"]) - item["buy_price"]
+    time_to_recoup = (item["buy_price"] / (item["amount_per_yield"] *
+                      item["amount_of_yields"] * item["resell_price"])) * item["time_per_yield"]
+    return net_gain, time_to_recoup
+
+
+def calculate_tier_metrics(tier):
+    item_data = []
+    for item in tier:
+        net_gain, time_to_recoup = calculate_item_metrics(item)
+        item_data.append({
+            'name': item['name'],
+            'net_gain': net_gain,
+            'time_to_recoup': time_to_recoup
+        })
+
+    return item_data
+
+
+def plot_item_progression(item_data):
+    # Convert to DataFrame for plotting
+    df = pd.DataFrame(item_data)
+
+    # Creating subplots
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+
+    # Setting the positions for the bars
+    pos = np.arange(len(df['name']))
+
+    # Plot Net Gain on the first subplot
+    ax1.bar(pos, df['net_gain'], label='Net Gain', color='tab:red')
+    ax1.set_ylabel('Net Gain', color='tab:red')
+    ax1.set_title('Net Gain per Item')
+    ax1.set_xticks(pos)
+    ax1.set_xticklabels(df['name'])
+    ax1.tick_params(axis='y', labelcolor='tab:red')
+    ax1.legend()
+
+    # Plot Time to Recoup on the second subplot
+    ax2.bar(pos, df['time_to_recoup'],
+            label='Time to Recoup', color='tab:blue')
+    ax2.set_ylabel('Time to Recoup Investment (Hours)', color='tab:blue')
+    ax2.set_title('Time to Recoup Investment per Item')
+    ax2.set_xticks(pos)
+    ax2.set_xticklabels(df['name'])
+    ax2.tick_params(axis='y', labelcolor='tab:blue')
+    ax2.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
+def show_estimate_message(item_data, next_tier, next_tier_name):
+    most_profitable_item = max(item_data, key=lambda x: x['net_gain'])
+    next_tier_cost = min(
+        next_tier, key=lambda x: x['buy_price']).get('buy_price')
+    items_needed = next_tier_cost // most_profitable_item['net_gain']
+    time_needed = items_needed * most_profitable_item['time_to_recoup']
+
+    progress_statement = f"It would take approximately {items_needed} {most_profitable_item['name']} and approximately {time_needed:.2f} hours to reach {next_tier_name}."
+
+    display(Markdown(progress_statement))
+
+
+# Define initial parameters for each item
+tier_1 = [
+    {"name": "Apple", "buy_price": 100, "amount_per_yield": 3,
+        "time_per_yield": 1, "amount_of_yields": 3, "resell_price": 15},
+    {"name": "Carrot", "buy_price": 50, "amount_per_yield": 2,
+        "time_per_yield": 1.75, "amount_of_yields": 2, "resell_price": 25},
+    {"name": "Blueberry", "buy_price": 200, "amount_per_yield": 8,
+     "time_per_yield": 1.1, "amount_of_yields": 3, "resell_price": 10}
+]
+
+tier_2 = [
+    {"name": "Pumpkin", "buy_price": 1000, "amount_per_yield": 3,
+        "time_per_yield": 3.25, "amount_of_yields": 4, "resell_price": 200},
+    {"name": "Corn", "buy_price": 400, "amount_per_yield": 12,
+     "time_per_yield": 4, "amount_of_yields": 1, "resell_price": 125},
+    {"name": "Orange", "buy_price": 1250, "amount_per_yield": 18,
+     "time_per_yield": 3, "amount_of_yields": 3, "resell_price": 50},
+    {"name": "Peach", "buy_price": 1350, "amount_per_yield": 15,
+     "time_per_yield": 2.5, "amount_of_yields": 2, "resell_price": 90}
+]
+
+tier_3 = [
+    {"name": "Starfruit", "buy_price": 125000, "amount_per_yield": 1,
+     "time_per_yield": 12, "amount_of_yields": 12, "resell_price": 11200},
+    {"name": "Pickle", "buy_price": 110000, "amount_per_yield": 8,
+     "time_per_yield": 12, "amount_of_yields": 6, "resell_price": 2450},
+    {"name": "Strawberry", "buy_price": 100000, "amount_per_yield": 18,
+     "time_per_yield": 14, "amount_of_yields": 4, "resell_price": 1500},
+]
+
+
+display(Markdown("## Tier 1"))
+
+item_data = calculate_tier_metrics(tier_1)
+plot_item_progression(item_data)
+
+show_estimate_message(item_data, tier_2, "Tier 2")
+
+display(Markdown("## Tier 2"))
+
+item_data = calculate_tier_metrics(tier_2)
+plot_item_progression(item_data)
+
+show_estimate_message(item_data, tier_3, "Tier 3")
+
+display(Markdown("## Tier 3"))
+
+item_data = calculate_tier_metrics(tier_3)
+plot_item_progression(item_data)
+
+```
