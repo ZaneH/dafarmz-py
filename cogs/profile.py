@@ -16,7 +16,7 @@ class Profile(commands.Cog):
         farm = await FarmModel.find_by_discord_id(ctx.author.id)
         if not farm:
             farm = FarmModel(discord_id=str(ctx.author.id), plot={})
-            await farm.save()
+            await farm.save_plot()
 
         user = await UserModel.find_by_discord_id(ctx.author.id)
         if not user:

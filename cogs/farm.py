@@ -15,11 +15,11 @@ class Farm(commands.Cog):
         return await ctx.respond({"plot": farm.plot}, ephemeral=True)
 
     @commands.slash_command(name="harvest", description="Harvest your farm")
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def harvest(self, ctx: discord.context.ApplicationContext):
         farm = await FarmModel.find_by_discord_id(ctx.author.id)
         farm.harvest()
-        await farm.save()
+        await farm.save_plot()
         return await ctx.respond({"plot": farm.plot}, ephemeral=True)
 
 

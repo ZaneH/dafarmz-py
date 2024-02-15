@@ -1,27 +1,19 @@
 import discord
 from discord.ext import commands
+from .views.buy_view import BuyView
 from models.shop import ShopModel
 from utils.currency import format_currency
-
-
-def get_purchasables(ctx: discord.AutocompleteContext):
-    item_category = ctx.options['item_category']
-    match item_category:
-        case 'Plants':
-            return ['Apple', 'Carrot', 'Blueberry', 'Pumpkin', 'Corn', 'Orange', 'Peach', 'Starfruit', 'Pickle', 'Strawberry']
-
-    return ['⏳ Coming soon...']
 
 
 class Shop(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.shop_data = None
+        self.shop_data = []
 
     @commands.slash_command(name="shop", description="View the shop")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def shop(self, ctx: discord.context.ApplicationContext):
-        if self.shop_data is None:
+        if len(self.shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
         embed = discord.Embed(title="Shop", color=discord.Color.blurple())
@@ -34,15 +26,27 @@ class Shop(commands.Cog):
 
         await ctx.respond(embed=embed, ephemeral=True)
 
+    def get_purchasables(ctx: discord.AutocompleteContext):
+        type = ctx.options['type']
+        shop_data = ctx.cog.shop_data
+
+        plants = [item.name for item in shop_data if item.type == 'plant']
+        match type:
+            case 'Plants':
+                return plants
+
+        return ['⏳ Coming soon...']
+
     @commands.slash_command(name="buy", description="Buy an item from the shop")
     @commands.cooldown(5, 8, commands.BucketType.user)
     # fmt: off
     async def buy(self,
                   ctx: discord.context.ApplicationContext,
-                  type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades']), # type: ignore
-                  name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables))): # type: ignore
+                  type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
+                  name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False)): # type: ignore
     # fmt: on
-        pass
+        if type is None and name is None:
+            await ctx.respond("## Shop", view=BuyView(self.shop_data), ephemeral=True)
 
     @commands.Cog.listener()
     async def on_ready(self):

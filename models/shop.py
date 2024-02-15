@@ -14,6 +14,7 @@ class ShopModel(BaseModel):
     name: str
     cost: int
     time: int
+    type: str
 
     @classmethod
     async def find_all(cls):
