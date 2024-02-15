@@ -31,13 +31,17 @@ class UserModel(BaseModel):
     inventory: Dict[str, UserInventoryItem]
 
     @classmethod
-    async def find_all(cls):
+    async def find_by_discord_id(cls, discord_id):
         collection = get_collection(COLLECTION_NAME)
-        cursor = collection.find({})
-        items = await cursor.to_list(length=None)
-        items = [cls(**item) for item in items]
+        doc = await collection.find_one({
+            "discord_id": str(discord_id)
+        })
 
-        return items
+        return cls(**doc) if doc else None
+
+    async def save(self):
+        collection = get_collection(COLLECTION_NAME)
+        await collection.replace_one({"_id": self.id}, self.model_dump(), upsert=True)
 
     class Config:
         arbitrary_types_allowed = True

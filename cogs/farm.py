@@ -14,6 +14,14 @@ class Farm(commands.Cog):
         farm = await FarmModel.find_by_discord_id(ctx.author.id)
         return await ctx.respond({"plot": farm.plot}, ephemeral=True)
 
+    @commands.slash_command(name="harvest", description="Harvest your farm")
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def harvest(self, ctx: discord.context.ApplicationContext):
+        farm = await FarmModel.find_by_discord_id(ctx.author.id)
+        farm.harvest()
+        await farm.save()
+        return await ctx.respond({"plot": farm.plot}, ephemeral=True)
+
 
 def setup(bot):
     bot.add_cog(Farm(bot))

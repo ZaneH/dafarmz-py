@@ -48,6 +48,23 @@ class FarmModel(BaseModel):
 
         return cls(**doc) if doc else None
 
+    def harvest(self):
+        # TODO: Check if the required time has passed before harvesting
+        for plot_item in self.plot.values():
+            if plot_item.data and plot_item.data.get('yields_remaining', 0) > 0:
+                plot_item.data['yields_remaining'] -= 1
+                plot_item.data['last_harvested_at'] = datetime.utcnow()
+
+                # TODO: Add the harvested item to the user's inventory
+
+    async def save(self):
+        collection = get_collection(COLLECTION_NAME)
+        await collection.update_one(
+            {"_id": self.id},
+            {"$set": self.model_dump()},
+            upsert=True
+        )
+
     class Config:
         arbitrary_types_allowed = True
         json_encoders = {
