@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from models.farm import FarmModel
 from models.user import UserModel
+from utils.currency import format_currency
 from utils.users import require_user
 
 
@@ -25,14 +26,21 @@ class Profile(commands.Cog):
                              created_at=discord.utils.utcnow())
             await user.save()
 
-        return await ctx.respond("You're all good to go! Use `/help` to get started.", ephemeral=True)
+        return await ctx.respond("You're all set! Use `/help` to get started.")
 
     @commands.slash_command(name="profile", description="View your profile information")
     @commands.cooldown(1, 4, commands.BucketType.user)
     async def profile(self, ctx: discord.context.ApplicationContext):
         profile = await UserModel.find_by_discord_id(ctx.author.id)
         if await require_user(ctx, profile):
-            return await ctx.respond({"profile": profile}, ephemeral=True)
+            embed = discord.Embed(
+                title=f":farmer: {ctx.author.display_name}'s Profile",
+                description=f"**Balance**: {format_currency(profile.balance)} coins",
+                color=discord.Color.dark_gray(),
+            )
+            embed.set_thumbnail(url=ctx.author.avatar.url)
+
+            return await ctx.respond({"profile": profile}, embed=embed)
 
     @commands.slash_command(name="inventory", description="View your inventory")
     @commands.cooldown(1, 6, commands.BucketType.user)
