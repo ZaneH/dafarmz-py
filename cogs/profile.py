@@ -38,7 +38,7 @@ class Profile(commands.Cog):
         if await require_user(ctx, profile):
             embed = discord.Embed(
                 title=f"{ctx.author.display_name}'s Profile :farmer:",
-                description=f"""**Balance**: {format_currency(profile.balance)} coins\n**Created at**: {profile.created_at.strftime("%b %d, %Y")}""",
+                description=f"""**Balance**: {format_currency(profile.balance)} coins\n**Joined**: {profile.created_at.strftime("%b %d, %Y")}""",
                 color=discord.Color.dark_gray(),
             )
             embed.set_thumbnail(url=ctx.author.avatar.url)

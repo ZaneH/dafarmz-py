@@ -11,7 +11,7 @@ Invite the bot using [this link](https://discord.com/api/oauth2/authorize?client
 git clone https://github.com/ZaneH/dafarmz-py.git
 cd dafarmz-py
 
-conda create -n dafarmz-py python=3.11 -y
+conda create -n dafarmz-py python=3.10 -y
 conda activate dafarmz-py
 pip install -r requirements.txt
 

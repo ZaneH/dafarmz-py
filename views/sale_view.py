@@ -103,7 +103,8 @@ class SaleView(discord.ui.View):
 
         self.full_selected_item = next(
             item for item in self.shop_data if item.type == self.selected_item)
-        self.cost_total = self.full_selected_item.cost * self.quantity
+
+        self.update_cost_total()
 
         await self.message.edit(
             f"{verb} {self.quantity}x {self.selected_item_label} for {format_currency(self.cost_total)}",
@@ -116,7 +117,7 @@ class SaleView(discord.ui.View):
         verb = "Buying" if self.buy_or_sell == "buy" else "Selling"
         self.quantity = max(1, self.quantity + amount)
 
-        self.cost_total = self.full_selected_item.cost * self.quantity
+        self.update_cost_total()
 
         await self.message.edit(
             f"{verb} {self.quantity}x {self.selected_item_label} for {format_currency(self.cost_total)}",
@@ -140,3 +141,9 @@ class SaleView(discord.ui.View):
 
     async def cancel_purchase(self, interaction):
         await self.message.edit("Transaction cancelled.", view=None)
+
+    def update_cost_total(self):
+        if self.buy_or_sell == "buy":
+            self.cost_total = self.full_selected_item.cost * self.quantity
+        else:
+            self.cost_total = self.full_selected_item.resell_price * self.quantity
