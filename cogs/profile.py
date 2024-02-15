@@ -34,6 +34,30 @@ class Profile(commands.Cog):
         if await require_user(ctx, profile):
             return await ctx.respond({"profile": profile}, ephemeral=True)
 
+    @commands.slash_command(name="inventory", description="View your inventory")
+    @commands.cooldown(1, 6, commands.BucketType.user)
+    async def inventory(self, ctx: discord.context.ApplicationContext):
+        profile = await UserModel.find_by_discord_id(ctx.author.id)
+        if await require_user(ctx, profile):
+            return await ctx.respond({"inventory": profile.inventory}, ephemeral=True)
+
+    @commands.slash_command(name="vote", description="Vote for the bot for rewards")
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def vote(self, ctx: discord.context.ApplicationContext):
+        embed = discord.Embed(
+            title=":tractor: Vote for DaFarmz :ear_of_rice:",
+            description="**Bonuses**\n- +500 coins\n- 1x random seed\n\nVote on the following platforms:",
+            fields=[
+                discord.EmbedField(
+                    name="Top.gg",
+                    value="[Vote here](https://top.gg/bot/1141161773983088640/vote)"
+                ),
+            ],
+            color=discord.Color.green()
+        )
+
+        return await ctx.respond(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Profile(bot))

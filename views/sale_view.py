@@ -12,14 +12,14 @@ class SaleView(discord.ui.View):
         self.selected_item = None
         self.quantity = 1
 
-        # Views
-        self.items_select = None
-        self.qty_minus_five = None
-        self.qty_minus_one = None
-        self.qty_plus_one = None
-        self.qty_plus_five = None
-        self.qty_cancel = None
-        self.qty_confirm = None
+        # Components
+        self.items_select = None  # Item select dropdown
+        self.qty_minus_five = None  # Quantity -5
+        self.qty_minus_one = None  # Quantity -1
+        self.qty_plus_one = None  # Quantity +1
+        self.qty_plus_five = None  # Quantity +5
+        self.qty_cancel = None  # Cancel button
+        self.qty_confirm = None  # Confirm button
 
     @discord.ui.select(placeholder=f"Pick an item type...",
                        options=[
@@ -102,7 +102,7 @@ class SaleView(discord.ui.View):
 
     async def confirm_purchase(self, interaction):
         receipt = discord.Embed(
-            title="Transaction Summary :shopping_cart:", color=discord.Color.blurple())
+            title="Transaction Summary :shopping_cart:", color=discord.Color.random())
         receipt.add_field(name="Item", value=self.selected_item)
         receipt.add_field(name="Quantity", value=self.quantity)
         receipt.add_field(name="Total", value="Coming soon...")

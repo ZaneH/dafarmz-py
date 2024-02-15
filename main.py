@@ -1,9 +1,13 @@
+import asyncio
 import logging
 import os
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from fastapi import FastAPI
+
+from api.fastapi import router
 
 load_dotenv()
 
@@ -26,7 +30,7 @@ class DaFarmz(commands.Bot):
         )
 
     async def on_connect(self):
-        await bot.sync_commands()
+        await self.sync_commands()
 
     async def on_ready(self):
         logger.info(
@@ -35,6 +39,8 @@ class DaFarmz(commands.Bot):
 
 
 bot = DaFarmz()
+app = FastAPI()
+app.include_router(router)
 
 
 @bot.command(hidden=True)
@@ -63,6 +69,13 @@ for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
         bot.load_extension(f"cogs.{filename[:-3]}")
 
-
 bot.load_extension("jishaku")
-bot.loop.run_until_complete(bot.run(TOKEN))
+
+
+async def run():
+    try:
+        await bot.start(TOKEN)
+    except KeyboardInterrupt:
+        await bot.close()
+
+asyncio.create_task(run())

@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from .views.sale_view import SaleView
+from views.sale_view import SaleView
 from models.shop import ShopModel
 from utils.currency import format_currency
 

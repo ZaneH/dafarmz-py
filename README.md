@@ -27,6 +27,7 @@ python main.py
 ```
 DISCORD_TOKEN=
 MONGO_URI=
+TOPGG_WEBHOOK_SECRET=
 ```
 
 ## Other
