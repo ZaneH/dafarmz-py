@@ -66,10 +66,11 @@ IMAGE_YIELD_MAP = {
         "strawberry-1.png",
         "strawberry-2.png",
     ],
+    "treasure": "chest.png",
 }
 
 
-def determine_stage_for_item(item: str, last_harvested: datetime):
+def determine_stage_for_item(item: str, last_harvested: datetime, grow_time_hr: int):
     """
     Determine the stage of the plant based on the item, yields remaining, and
     last harvested date.
@@ -82,9 +83,14 @@ def determine_stage_for_item(item: str, last_harvested: datetime):
     if not images:
         return None
 
+    # Handle treasure chests
+    if isinstance(images, str):
+        return images
+
+    # Handle plant stages
     time_since_last_harvest = (
         datetime.utcnow() - last_harvested).total_seconds()
-    time_per_yield = 3600  # 1 hour
+    time_per_yield = grow_time_hr * 3600
     time_elapsed = time_since_last_harvest // time_per_yield
     stage = min(len(images), int(time_elapsed * len(images))) - 1
 

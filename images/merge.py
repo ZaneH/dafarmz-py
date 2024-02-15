@@ -41,9 +41,14 @@ def generate_image(plot_state):
     for plot_id, state in plot_state.items():
         col, row = plot_id[0], plot_id[1:]
 
+        last_harvested_at = getattr(state.data, "last_harvested_at", None)
+        grow_time_hr = getattr(state.data, "grow_time_hr", 1)
         item_image = determine_stage_for_item(
-            state.type, getattr(state.data, "last_harvested_at", None))
-        print(item_image)
+            state.type,
+            last_harvested_at,
+            grow_time_hr
+        )
+
         if item_image:
             base_image = place_object(
                 base_image,
