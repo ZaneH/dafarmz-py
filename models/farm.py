@@ -4,6 +4,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 from db.database import Database
 from models.pyobjectid import PyObjectId
+from utils.plant_state import can_harvest
 
 
 COLLECTION_NAME = "farms"
@@ -21,15 +22,10 @@ class FarmPlotItem(BaseModel):
     class BasePlotItemData(BaseModel):
         yields_remaining: int
         last_harvested_at: datetime
+        yields: Dict[str, int]
 
     type: str
     data: Optional[BasePlotItemData | Any] = None
-
-    def to_dict(self):
-        return {
-            "type": self.type,
-            "data": self.data.model_dump() if self.data else None
-        }
 
     class Config:
         arbitrary_types_allowed = True
@@ -55,11 +51,19 @@ class FarmModel(BaseModel):
         return cls(**doc) if doc else None
 
     def harvest(self):
-        # TODO: Check if the required time has passed before harvesting
         for plot_item in self.plot.values():
-            if plot_item.data and plot_item.data.yields_remaining > 0:
-                plot_item.data.yields_remaining -= 1
-                plot_item.data.last_harvested_at = datetime.utcnow()
+            if plot_item.data and plot_item.data.get("yields_remaining") > 0:
+                is_ready = can_harvest(
+                    plot_item.type,
+                    plot_item.data.get("last_harvested_at"),
+                    plot_item.data.get("grow_time_hr", 1)
+                )
+
+                if not is_ready:
+                    continue
+
+                plot_item.data["yields_remaining"] -= 1
+                plot_item.data["last_harvested_at"] = datetime.utcnow()
 
                 # TODO: Add the harvested item to the user's inventory
 
@@ -67,7 +71,7 @@ class FarmModel(BaseModel):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         await collection.update_one(
             {"_id": self.id},
-            {"$set": {"plot": {k: v.to_dict() for k, v in self.plot.items()}}},
+            {"$set": {"plot": {k: v.model_dump() for k, v in self.plot.items()}}},
             upsert=True
         )
 

@@ -13,8 +13,8 @@ class ShopModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
     name: str
     cost: int
-    time: int
     type: str
+    grow_time_hr: float
     resell_price: int
 
     @classmethod
