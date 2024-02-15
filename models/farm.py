@@ -14,7 +14,7 @@ class FarmPlotItem(BaseModel):
     Represents a single plot item in the user's farm. This model contains
     info about what is currently planted in a plot space.
 
-    `item_type` is the type of item that is currently planted in the plot.
+    `type` is the type of item that is currently planted in the plot.
     Typically prefixed with `<type>:` where `<type>` is the type of item.
     `data` is any additional information about the plot space.
     """
@@ -22,12 +22,12 @@ class FarmPlotItem(BaseModel):
         yields_remaining: int
         last_harvested_at: datetime
 
-    item_type: str
+    type: str
     data: Optional[BasePlotItemData | Any] = None
 
     def to_dict(self):
         return {
-            "item_type": self.item_type,
+            "type": self.type,
             "data": self.data.model_dump() if self.data else None
         }
 
