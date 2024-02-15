@@ -1,6 +1,6 @@
 from PIL import Image
 
-from utils.plant_state import determine_stage_for_item
+from utils.plant_state import get_image_for_plot_item_state
 
 GRID_SIZE = 32
 PLOT_OFFSET = 29
@@ -26,12 +26,12 @@ def place_object(base, object_image, grid_x, grid_y):
 
 
 def generate_base_image():
-    bl1 = Image.open("./images/files/base-1.png")
-    bl2 = Image.open("./images/files/base-2.png")
+    bl1 = Image.open("./images/files/base-1.png").convert("RGBA")
+    bl2 = Image.open("./images/files/base-2.png").convert("RGBA")
     base = Image.new("RGBA", bl1.size)
-    base.paste(bl1, (0, 0))
-    base.paste(bl2, (0, 0))
-    return bl1
+    base.paste(bl1, (0, 0), bl1)
+    base.paste(bl2, (0, 0), bl2)
+    return base
 
 
 def generate_image(plot_state):
@@ -43,7 +43,7 @@ def generate_image(plot_state):
 
         last_harvested_at = getattr(state.data, "last_harvested_at", None)
         grow_time_hr = getattr(state.data, "grow_time_hr", 1)
-        item_image = determine_stage_for_item(
+        item_image = get_image_for_plot_item_state(
             state.type,
             last_harvested_at,
             grow_time_hr

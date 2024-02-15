@@ -70,7 +70,7 @@ IMAGE_YIELD_MAP = {
 }
 
 
-def determine_stage_for_item(item: str, last_harvested: datetime, grow_time_hr: int):
+def get_image_for_plot_item_state(item: str, last_harvested: datetime, grow_time_hr: int):
     """
     Determine the stage of the plant based on the item, yields remaining, and
     last harvested date.
@@ -91,7 +91,7 @@ def determine_stage_for_item(item: str, last_harvested: datetime, grow_time_hr: 
     time_since_last_harvest = (
         datetime.utcnow() - last_harvested).total_seconds()
     time_per_yield = grow_time_hr * 3600
-    time_elapsed = time_since_last_harvest // time_per_yield
-    stage = min(len(images), int(time_elapsed * len(images))) - 1
+    time_elapsed = time_since_last_harvest / time_per_yield
+    stage = max(0, min(len(images), int(time_elapsed * len(images))) - 1)
 
     return images[stage]
