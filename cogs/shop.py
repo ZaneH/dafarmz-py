@@ -1,8 +1,35 @@
+from datetime import datetime
+import logging
+
 import discord
 from discord.ext import commands
-from views.sale_view import SaleView
+
 from models.shop import ShopModel
+from models.user import UserModel
 from utils.currency import format_currency
+from views.sale_view import SaleView
+
+logger = logging.getLogger(__name__)
+
+
+def create_receipt(buyer_discord_id, item_name, quantity, cost):
+    logger.info(f"User {buyer_discord_id} bought {quantity} {item_name}")
+    receipt = discord.Embed(
+        title="DaMart :convenience_store:",
+        description=f"Receipt for <@{buyer_discord_id}>",
+        color=discord.Color.random()
+    )
+
+    receipt.add_field(name="Item", value=item_name)
+    receipt.add_field(name="Quantity", value=quantity)
+    receipt.add_field(name="Total",
+                      value=format_currency(cost))
+
+    formatted_date = datetime.utcnow().strftime(
+        "%b %d, %Y")
+    receipt.set_footer(
+        text=f"Thank you for shopping at DaMart!\n{formatted_date}")
+    return receipt
 
 
 class Shop(commands.Cog):
@@ -30,10 +57,11 @@ class Shop(commands.Cog):
         type = ctx.options['type']
         shop_data = ctx.cog.shop_data
 
-        plants = [item.name for item in shop_data if item.type == 'plant']
+        plant_shop_items = [
+            item.name for item in shop_data if 'plant' in item.type.lower()]
         match type:
             case 'Plants':
-                return plants
+                return plant_shop_items
 
         return ['⏳ Coming soon...']
 
@@ -43,10 +71,28 @@ class Shop(commands.Cog):
     async def buy(self,
                   ctx: discord.context.ApplicationContext,
                   type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
-                  name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False)): # type: ignore
+                  name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
+                  amount: discord.Option(int, description="The amount of the item to buy", required=False) = 1): # type: ignore
     # fmt: on
+        # Handle the case where no options are provided
         if type is None and name is None:
-            await ctx.respond("## Shop", view=SaleView(self.shop_data), ephemeral=True)
+            sale_view = SaleView(self.shop_data, "buy")
+
+            async def _on_purchase_callback(view, item, item_name, quantity, cost):
+                success = await UserModel.give_item(ctx.author.id, item, quantity, cost)
+                if success:
+                    receipt = create_receipt(
+                        ctx.author.id, item_name, quantity, cost)
+
+                    if isinstance(view, SaleView):
+                        await view.message.edit(content="Transaction completed.", view=None)
+
+                    await ctx.respond(embed=receipt)
+                else:
+                    await ctx.respond("You don't have enough money to buy that.", ephemeral=True)
+
+            sale_view.on_purchase_callback = _on_purchase_callback
+            await ctx.respond("## DaMart :convenience_store:", view=sale_view, ephemeral=True)
 
     @commands.slash_command(name="sell", description="Sell an item from your inventory")
     @commands.cooldown(5, 8, commands.BucketType.user)
@@ -57,9 +103,8 @@ class Shop(commands.Cog):
                   name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False)): # type: ignore
     # fmt: on
         if type is None and name is None:
-            sale_view = SaleView(self.shop_data)
-            sale_view.BUY_OR_SELL = "sell"
-            await ctx.respond("## Shop", view=sale_view, ephemeral=True)
+            sale_view = SaleView(self.shop_data, "sell")
+            await ctx.respond("## DaMart :convenience_store:", view=sale_view, ephemeral=True)
 
     @commands.Cog.listener()
     async def on_ready(self):

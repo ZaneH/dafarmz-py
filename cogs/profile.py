@@ -31,11 +31,14 @@ class Profile(commands.Cog):
     @commands.slash_command(name="profile", description="View your profile information")
     @commands.cooldown(1, 4, commands.BucketType.user)
     async def profile(self, ctx: discord.context.ApplicationContext):
+        """
+        /profile - View the user's profile
+        """
         profile = await UserModel.find_by_discord_id(ctx.author.id)
         if await require_user(ctx, profile):
             embed = discord.Embed(
-                title=f":farmer: {ctx.author.display_name}'s Profile",
-                description=f"**Balance**: {format_currency(profile.balance)} coins",
+                title=f"{ctx.author.display_name}'s Profile :farmer:",
+                description=f"""**Balance**: {format_currency(profile.balance)} coins\n**Created at**: {profile.created_at.strftime("%b %d, %Y")}""",
                 color=discord.Color.dark_gray(),
             )
             embed.set_thumbnail(url=ctx.author.avatar.url)

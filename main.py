@@ -78,4 +78,5 @@ async def run():
     except KeyboardInterrupt:
         await bot.close()
 
-asyncio.create_task(run())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(run())

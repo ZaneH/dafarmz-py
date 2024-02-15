@@ -1,16 +1,25 @@
+from datetime import datetime
 import discord
+
+from utils.currency import format_currency
 
 
 class SaleView(discord.ui.View):
-    BUY_OR_SELL: str = "buy"
+    def __init__(self, shop_data, buy_or_sell="buy"):
+        """
+        A view for buying or selling items from the shop.
+        """
 
-    def __init__(self, shop_data):
         super().__init__()
 
+        self.on_purchase_callback = None
+
+        self.buy_or_sell = buy_or_sell
         self.shop_data = shop_data
-        self.selected_type = None
+        self.selected_category = None
         self.selected_item = None
         self.quantity = 1
+        self.cost_total = 0
 
         # Components
         self.items_select = None  # Item select dropdown
@@ -32,27 +41,29 @@ class SaleView(discord.ui.View):
                        ],
                        min_values=1, max_values=1,
                        row=0)
-    async def select_type(self, select, interaction):
-        self.selected_type = select.values[0]
+    async def select_category(self, select, interaction):
+        self.selected_category: str = select.values[0]
 
         self.remove_item(self.items_select)
 
         self.items_select = discord.ui.Select(
-            placeholder=f"Choose from the {self.selected_type}s to {self.BUY_OR_SELL}",
-            options=[discord.SelectOption(label=item.name, value=item.name)
-                     for item in self.shop_data if item.type == self.selected_type],
+            placeholder=f"Choose from the {self.selected_category}s to {self.buy_or_sell}",
+            options=[discord.SelectOption(label=item.name, value=item.type)
+                     for item in self.shop_data if self.selected_category.lower() in item.type.lower()],
             min_values=1, max_values=1, row=1
         )
 
-        self.items_select.callback = self.select_item
+        self.items_select.callback = self.select_item_callback
 
         self.add_item(self.items_select)
 
-        await self.message.edit(f"## Shop\nBrowsing {self.selected_type}s...", view=self)
+        await self.message.edit(f"## DaMart :convenience_store:\nBrowsing {self.selected_category}s...", view=self)
         await interaction.response.defer()
 
-    async def select_item(self, interaction):
+    async def select_item_callback(self, interaction: discord.Interaction):
         self.selected_item = interaction.data["values"][0]
+        self.selected_item_label = next(
+            item for item in self.shop_data if item.type == self.selected_item).name
 
         self.remove_item(self.qty_minus_five)
         self.remove_item(self.qty_minus_one)
@@ -88,27 +99,44 @@ class SaleView(discord.ui.View):
         self.add_item(self.qty_cancel)
         self.add_item(self.qty_confirm)
 
-        verb = "Buying" if self.BUY_OR_SELL == "buy" else "Selling"
+        verb = "Buying" if self.buy_or_sell == "buy" else "Selling"
 
-        await self.message.edit(f"{verb} {self.quantity}x {self.selected_item}...", view=self)
+        self.full_selected_item = next(
+            item for item in self.shop_data if item.type == self.selected_item)
+        self.cost_total = self.full_selected_item.cost * self.quantity
+
+        await self.message.edit(
+            f"{verb} {self.quantity}x {self.selected_item_label} for {format_currency(self.cost_total)}",
+            view=self
+        )
+
         await interaction.response.defer()
 
     async def update_quantity(self, interaction, amount: int):
-        verb = "Buying" if self.BUY_OR_SELL == "buy" else "Selling"
+        verb = "Buying" if self.buy_or_sell == "buy" else "Selling"
         self.quantity = max(1, self.quantity + amount)
 
-        await self.message.edit(f"{verb} {self.quantity}x {self.selected_item}...", view=self)
+        self.cost_total = self.full_selected_item.cost * self.quantity
+
+        await self.message.edit(
+            f"{verb} {self.quantity}x {self.selected_item_label} for {format_currency(self.cost_total)}",
+            view=self
+        )
+
         await interaction.response.defer()
 
-    async def confirm_purchase(self, interaction):
-        receipt = discord.Embed(
-            title="Transaction Summary :shopping_cart:", color=discord.Color.random())
-        receipt.add_field(name="Item", value=self.selected_item)
-        receipt.add_field(name="Quantity", value=self.quantity)
-        receipt.add_field(name="Total", value="Coming soon...")
-        receipt.set_footer(text="Thank you for shopping at DaMart!")
+    async def confirm_purchase(self, interaction: discord.Interaction):
+        # Call the on_purchase_callback if it exists
+        if self.on_purchase_callback:
+            await self.on_purchase_callback(
+                self,  # Pass the view instance
+                self.selected_item,
+                self.selected_item_label,
+                self.quantity,
+                self.cost_total
+            )
 
-        await self.message.edit(embed=receipt, view=None)
+        await interaction.response.defer()
 
     async def cancel_purchase(self, interaction):
         await self.message.edit("Transaction cancelled.", view=None)
