@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 from bson import ObjectId
 from pydantic import BaseModel, Field
-from db.database import get_collection
+from db.database import Database
 from models.pyobjectid import PyObjectId
 
 
@@ -47,7 +47,7 @@ class FarmModel(BaseModel):
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):
-        collection = get_collection(COLLECTION_NAME)
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
         doc = await collection.find_one({
             "discord_id": str(discord_id)
         })
@@ -64,7 +64,7 @@ class FarmModel(BaseModel):
                 # TODO: Add the harvested item to the user's inventory
 
     async def save_plot(self):
-        collection = get_collection(COLLECTION_NAME)
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
         await collection.update_one(
             {"_id": self.id},
             {"$set": {"plot": {k: v.to_dict() for k, v in self.plot.items()}}},

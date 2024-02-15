@@ -1,6 +1,6 @@
 from bson import ObjectId
 from pydantic import BaseModel, Field
-from db.database import get_collection
+from db.database import Database
 from models.pyobjectid import PyObjectId
 
 COLLECTION_NAME = "shop"
@@ -18,7 +18,7 @@ class ShopModel(BaseModel):
 
     @classmethod
     async def find_all(cls):
-        collection = get_collection(COLLECTION_NAME)
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
         cursor = collection.find({})
         items = await cursor.to_list(length=None)
         items = [cls(**item) for item in items]

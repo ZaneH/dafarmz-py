@@ -2,8 +2,9 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 from bson import ObjectId
 from pydantic import BaseModel, Field
-from db.database import get_collection
 from models.pyobjectid import PyObjectId
+from db.database import Database
+
 
 COLLECTION_NAME = "users"
 
@@ -32,7 +33,7 @@ class UserModel(BaseModel):
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):
-        collection = get_collection(COLLECTION_NAME)
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
         doc = await collection.find_one({
             "discord_id": str(discord_id)
         })
@@ -40,7 +41,7 @@ class UserModel(BaseModel):
         return cls(**doc) if doc else None
 
     async def save(self):
-        collection = get_collection(COLLECTION_NAME)
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
         await collection.replace_one({"_id": self.id}, self.model_dump(), upsert=True)
 
     class Config:
