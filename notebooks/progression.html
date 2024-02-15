@@ -96,7 +96,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div id="720ea92e" class="cell" data-execution_count="1">
+<p>I’m using Hay Day as the inspiration for progression. It should feel quick &amp; gratifying for early players but difficult and grindy for late players.</p>
+<p>Each tier should have options with trade-offs. Each tier should be in a separate price range from the last.</p>
+<div id="e609947e" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -207,19 +209,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a>item_data <span class="op">=</span> calculate_tier_metrics(tier_1)</span>
 <span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>plot_item_progression(item_data)</span>
 <span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>show_estimate_message(item_data, tier_2, <span class="st">"Tier 2"</span>)</span>
-<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a>display(Markdown(<span class="st">"## Tier 2"</span>))</span>
-<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a>item_data <span class="op">=</span> calculate_tier_metrics(tier_2)</span>
-<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>plot_item_progression(item_data)</span>
-<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a>show_estimate_message(item_data, tier_3, <span class="st">"Tier 3"</span>)</span>
-<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a>display(Markdown(<span class="st">"## Tier 3"</span>))</span>
-<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>item_data <span class="op">=</span> calculate_tier_metrics(tier_3)</span>
-<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>plot_item_progression(item_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>show_estimate_message(item_data, tier_2, <span class="st">"Tier 2"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <section id="tier-1" class="level2 cell-output cell-output-display cell-output-markdown">
 <h2 class="anchored" data-anchor-id="tier-1">Tier 1</h2>
@@ -234,30 +224,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-display cell-output-markdown">
 <p>It would take approximately 8 Carrot and approximately 7.00 hours to reach Tier 2.</p>
 </div>
-<section id="tier-2" class="level2 cell-output cell-output-display cell-output-markdown">
+</div>
+<section id="tier-2" class="level2">
 <h2 class="anchored" data-anchor-id="tier-2">Tier 2</h2>
-</section>
+<div id="98812d8d" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>item_data <span class="op">=</span> calculate_tier_metrics(tier_2)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>plot_item_progression(item_data)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>show_estimate_message(item_data, tier_3, <span class="st">"Tier 3"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="progression_files/figure-html/cell-2-output-5.png" width="661" height="469" class="figure-img"></p>
+<p><img src="progression_files/figure-html/cell-3-output-1.png" width="661" height="469" class="figure-img"></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display cell-output-markdown">
 <p>It would take approximately 68 Orange and approximately 94.44 hours to reach Tier 3.</p>
 </div>
-<section id="tier-3" class="level2 cell-output cell-output-display cell-output-markdown">
-<h2 class="anchored" data-anchor-id="tier-3">Tier 3</h2>
+</div>
 </section>
+<section id="tier-3" class="level2">
+<h2 class="anchored" data-anchor-id="tier-3">Tier 3</h2>
+<div id="a002db17" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>item_data <span class="op">=</span> calculate_tier_metrics(tier_3)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>plot_item_progression(item_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="progression_files/figure-html/cell-2-output-8.png" width="661" height="469" class="figure-img"></p>
+<p><img src="progression_files/figure-html/cell-4-output-1.png" width="661" height="469" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
+</section>
 
 </main>
 <!-- /main column -->

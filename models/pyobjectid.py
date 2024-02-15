@@ -1,6 +1,6 @@
 from typing import Any, Dict
 from bson import ObjectId
-from pydantic import BaseModel, Field, validator
+
 
 class PyObjectId(ObjectId):
     @classmethod

@@ -1,6 +1,6 @@
-import os
-from datetime import datetime
 import logging
+import os
+
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -9,6 +9,11 @@ load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 logger = logging.getLogger()  # Get the root logger
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(name)s: %(message)s')
+logging.getLogger('discord').setLevel(logging.WARNING)
+logging.getLogger('asyncio').setLevel(logging.WARNING)
 
 
 class DaFarmz(commands.Bot):
@@ -24,7 +29,7 @@ class DaFarmz(commands.Bot):
         await bot.sync_commands()
 
     async def on_ready(self):
-        print(
+        logger.info(
             f"{self.user} is ready..."
         )
 

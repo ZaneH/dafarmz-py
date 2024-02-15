@@ -6,6 +6,12 @@ format:
 jupyter: python3
 ---
 
+I'm using Hay Day as the inspiration for progression. It should feel quick &
+gratifying for early players but difficult and grindy for late players.
+
+Each tier should have options with trade-offs. Each tier should be in a
+separate price range from the last.
+
 ```{python}
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -116,17 +122,18 @@ item_data = calculate_tier_metrics(tier_1)
 plot_item_progression(item_data)
 
 show_estimate_message(item_data, tier_2, "Tier 2")
+```
 
-display(Markdown("## Tier 2"))
-
+## Tier 2
+```{python}
 item_data = calculate_tier_metrics(tier_2)
 plot_item_progression(item_data)
 
 show_estimate_message(item_data, tier_3, "Tier 3")
+```
 
-display(Markdown("## Tier 3"))
-
+## Tier 3
+```{python}
 item_data = calculate_tier_metrics(tier_3)
 plot_item_progression(item_data)
-
 ```
