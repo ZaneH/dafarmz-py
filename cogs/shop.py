@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from .views.buy_view import BuyView
+from .views.sale_view import SaleView
 from models.shop import ShopModel
 from utils.currency import format_currency
 
@@ -46,7 +46,20 @@ class Shop(commands.Cog):
                   name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False)): # type: ignore
     # fmt: on
         if type is None and name is None:
-            await ctx.respond("## Shop", view=BuyView(self.shop_data), ephemeral=True)
+            await ctx.respond("## Shop", view=SaleView(self.shop_data), ephemeral=True)
+
+    @commands.slash_command(name="sell", description="Sell an item from your inventory")
+    @commands.cooldown(5, 8, commands.BucketType.user)
+    # fmt: off
+    async def sell(self,
+                  ctx: discord.context.ApplicationContext,
+                  type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
+                  name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False)): # type: ignore
+    # fmt: on
+        if type is None and name is None:
+            sale_view = SaleView(self.shop_data)
+            sale_view.BUY_OR_SELL = "sell"
+            await ctx.respond("## Shop", view=sale_view, ephemeral=True)
 
     @commands.Cog.listener()
     async def on_ready(self):

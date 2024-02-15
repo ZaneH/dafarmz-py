@@ -1,7 +1,9 @@
 import discord
 
 
-class BuyView(discord.ui.View):
+class SaleView(discord.ui.View):
+    BUY_OR_SELL: str = "buy"
+
     def __init__(self, shop_data):
         super().__init__()
 
@@ -19,7 +21,7 @@ class BuyView(discord.ui.View):
         self.qty_cancel = None
         self.qty_confirm = None
 
-    @discord.ui.select(placeholder="What type of item do you want to buy?",
+    @discord.ui.select(placeholder=f"Pick an item type...",
                        options=[
                            discord.SelectOption(label="Plants", value="plant"),
                            discord.SelectOption(
@@ -36,7 +38,7 @@ class BuyView(discord.ui.View):
         self.remove_item(self.items_select)
 
         self.items_select = discord.ui.Select(
-            placeholder=f"Choose from the {self.selected_type}s to buy",
+            placeholder=f"Choose from the {self.selected_type}s to {self.BUY_OR_SELL}",
             options=[discord.SelectOption(label=item.name, value=item.name)
                      for item in self.shop_data if item.type == self.selected_type],
             min_values=1, max_values=1, row=1
@@ -86,16 +88,27 @@ class BuyView(discord.ui.View):
         self.add_item(self.qty_cancel)
         self.add_item(self.qty_confirm)
 
-        await self.message.edit(f"Buying {self.quantity}x {self.selected_item}...", view=self)
+        verb = "Buying" if self.BUY_OR_SELL == "buy" else "Selling"
+
+        await self.message.edit(f"{verb} {self.quantity}x {self.selected_item}...", view=self)
         await interaction.response.defer()
 
     async def update_quantity(self, interaction, amount: int):
+        verb = "Buying" if self.BUY_OR_SELL == "buy" else "Selling"
         self.quantity = max(1, self.quantity + amount)
-        await self.message.edit(f"Buying {self.quantity}x {self.selected_item}...", view=self)
+
+        await self.message.edit(f"{verb} {self.quantity}x {self.selected_item}...", view=self)
         await interaction.response.defer()
 
     async def confirm_purchase(self, interaction):
-        await self.message.edit(f"Purchased {self.quantity}x {self.selected_item}!", view=None)
+        receipt = discord.Embed(
+            title="Transaction Summary :shopping_cart:", color=discord.Color.blurple())
+        receipt.add_field(name="Item", value=self.selected_item)
+        receipt.add_field(name="Quantity", value=self.quantity)
+        receipt.add_field(name="Total", value="Coming soon...")
+        receipt.set_footer(text="Thank you for shopping at DaMart!")
+
+        await self.message.edit(embed=receipt, view=None)
 
     async def cancel_purchase(self, interaction):
-        await self.message.edit("Purchase cancelled.", view=None)
+        await self.message.edit("Transaction cancelled.", view=None)
