@@ -6,7 +6,6 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 from fastapi import FastAPI
-
 from api.fastapi import router
 
 load_dotenv()
@@ -18,6 +17,7 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(name)s: %(message)s')
 logging.getLogger('discord').setLevel(logging.WARNING)
 logging.getLogger('asyncio').setLevel(logging.WARNING)
+logging.getLogger('PIL.PngImagePlugin').setLevel(logging.WARNING)
 
 
 class DaFarmz(commands.Bot):
