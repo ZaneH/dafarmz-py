@@ -113,6 +113,23 @@ class UserModel(BaseModel):
 
         return result.modified_count > 0
 
+    @classmethod
+    async def inc_stats(cls, discord_id, stats):
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        result = await collection.update_one(
+            {
+                "discord_id": str(discord_id),
+            },
+            {
+                "$inc": {
+                    f"stats.{stat}": amount
+                    for stat, amount in stats.items()
+                },
+            },
+        )
+
+        return result.modified_count > 0
+
     async def save(self):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         await collection.replace_one({"_id": self.id}, self.model_dump(), upsert=True)

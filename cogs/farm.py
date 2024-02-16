@@ -37,6 +37,17 @@ class Farm(commands.Cog):
         await UserModel.give_items(ctx.author.id, harvest_yield)
         logger.info(f"User {ctx.author.id} harvested {harvest_yield}")
 
+        if not any(harvest_yield.values()):
+            return await ctx.respond("You don't have anything to harvest!")
+
+        await UserModel.inc_stats(ctx.author.id, {
+            "harvest.count": 1,
+            **{
+                f"harvest.{item_type}": amount
+                for item_type, amount in harvest_yield.items()
+            }
+        })
+
         return await ctx.respond("You've harvested your farm!")
 
 
