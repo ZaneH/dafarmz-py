@@ -61,6 +61,7 @@ class FarmModel(BaseModel):
     def harvest(self):
         harvest_yield = {}
         dead_plot_items = []
+        xp_earned = 0
         for plot_id, plot_item in self.plot.items():
             if plot_item.data and plot_item.data.yields_remaining > 0:
                 is_ready = can_harvest(
@@ -71,6 +72,9 @@ class FarmModel(BaseModel):
 
                 if not is_ready:
                     continue
+
+                # Determine XP based on item's tier
+                xp_earned += 2
 
                 plot_item.data.yields_remaining -= 1
                 plot_item.data.last_harvested_at = datetime.utcnow()
@@ -89,7 +93,7 @@ class FarmModel(BaseModel):
         for plot_item in dead_plot_items:
             del self.plot[plot_item]
 
-        return harvest_yield
+        return (harvest_yield, xp_earned)
 
     def plant(self, location: str, item: ShopModel):
         # Check if the plot location is already taken

@@ -4,7 +4,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 from models.pyobjectid import PyObjectId
 from db.database import Database
-from utils.level_calculator import current_level
+from utils.level_calculator import level_based_on_xp
 
 
 COLLECTION_NAME = "users"
@@ -43,7 +43,7 @@ class UserModel(BaseModel):
         return cls(**doc) if doc else None
 
     @classmethod
-    async def give_items(cls, discord_id, items, cost=0):
+    async def give_items(cls, discord_id, items, cost=0, stats={}):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         result = await collection.update_one(
             {
@@ -55,6 +55,10 @@ class UserModel(BaseModel):
                     **{
                         f"inventory.{item}.amount": amount
                         for item, amount in items.items()
+                    },
+                    **{
+                        f"stats.{stat}": amount
+                        for stat, amount in stats.items()
                     }
                 },
             },
@@ -137,7 +141,7 @@ class UserModel(BaseModel):
 
     @property
     def current_level(self):
-        return current_level(self.stats.get("xp", 0))
+        return level_based_on_xp(self.stats.get("xp", 0))
 
     class Config:
         arbitrary_types_allowed = True

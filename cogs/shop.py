@@ -54,7 +54,6 @@ class Shop(commands.Cog):
 
         embed = discord.Embed(title="Shop", color=discord.Color.blurple())
         for item in shop_data:
-            print(item)
             embed.add_field(
                 name=f"{EMOJI_MAP[item.key]} {item.name}",
                 value=f"{EMOJI_MAP['ui:reply']} {format_currency(item.cost)}",

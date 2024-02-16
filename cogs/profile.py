@@ -9,7 +9,7 @@ from models.farm import FarmModel
 from models.user import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
-from utils.level_calculator import xp_for_next_level
+from utils.level_calculator import level_based_on_xp, xp_required_for_level, next_level_xp
 from utils.progress_bar import construct_progress_bar
 from utils.users import require_user
 
@@ -54,13 +54,15 @@ class Profile(commands.Cog):
         ])
 
         xp = profile.stats.get("xp", 0)
+        next_level = xp_required_for_level(level_based_on_xp(xp))
+        next_milestone = next_level_xp(xp)
         embed = discord.Embed(
             title=f"{ctx.author.display_name}'s Profile :farmer:",
             description=f"""**Balance**: {format_currency(profile.balance)}
 **Joined**: {profile.created_at.strftime("%b %d, %Y")}
 
-**Level {profile.current_level}**:
-{construct_progress_bar(int(xp), xp_for_next_level(xp), 8)}
+**Level {profile.current_level}** – {xp}/{next_milestone} XP:
+{construct_progress_bar(int(xp), next_level, 8)}
 
 {random_tip}""",
             color=discord.Color.dark_gray(),
