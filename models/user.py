@@ -26,10 +26,11 @@ class UserModel(BaseModel):
     is not used to interact with the user in the bot.
     """
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
-    discord_id: str
-    created_at: datetime
-    balance: int
-    inventory: Dict[str, UserInventoryItem]
+    discord_id: str = ""
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    balance: int = 0
+    inventory: Dict[str, UserInventoryItem] = {}
+    stats: Dict[str, int | float] = {}
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):
@@ -90,6 +91,22 @@ class UserModel(BaseModel):
                 "$inc": {
                     f"inventory.{item}.amount": -amount,
                     "balance": compensation
+                },
+            },
+        )
+
+        return result.modified_count > 0
+
+    @classmethod
+    async def inc_stat(cls, discord_id, stat, amount=1):
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        result = await collection.update_one(
+            {
+                "discord_id": str(discord_id),
+            },
+            {
+                "$inc": {
+                    f"stats.{stat}": amount
                 },
             },
         )

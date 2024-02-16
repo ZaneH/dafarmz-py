@@ -1,4 +1,5 @@
 import logging
+import random
 
 import discord
 from discord.ext import commands
@@ -28,7 +29,7 @@ class Profile(commands.Cog):
         if not user:
             user = UserModel(discord_id=str(ctx.author.id),
                              balance=100, inventory={},
-                             created_at=discord.utils.utcnow())
+                             created_at=discord.utils.utcnow(), stats={})
             await user.save()
 
         return await ctx.respond("You're all set! Use `/help` to get started.")
@@ -43,9 +44,17 @@ class Profile(commands.Cog):
         if not await require_user(ctx, profile):
             return
 
+        random_tip = random.choice([
+            "Use </inventory:1207866795147657219> to view your inventory.",
+            "Use </stats:1207963367864795207> to view statistics about your farm.",
+        ])
+
         embed = discord.Embed(
             title=f"{ctx.author.display_name}'s Profile :farmer:",
-            description=f"""**Balance**: {format_currency(profile.balance)}\n**Joined**: {profile.created_at.strftime("%b %d, %Y")}\n\nUse </inventory:1207866795147657219> to view your inventory.""",
+            description=f"""**Balance**: {format_currency(profile.balance)}
+**Joined**: {profile.created_at.strftime("%b %d, %Y")}
+
+{random_tip}""",
             color=discord.Color.dark_gray(),
         )
 
@@ -82,6 +91,15 @@ class Profile(commands.Cog):
         )
 
         return await ctx.respond(embed=embed)
+
+    @commands.slash_command(name="stats", description="View your farming stats")
+    @commands.cooldown(1, 4, commands.BucketType.user)
+    async def stats(self, ctx: discord.context.ApplicationContext):
+        profile = await UserModel.find_by_discord_id(ctx.author.id)
+        if not await require_user(ctx, profile):
+            return
+
+        return await ctx.respond(profile.stats)
 
     def inventory_to_embed(self, inventory):
         def item_type_to_name_fallback(item_type):
