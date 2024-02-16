@@ -71,7 +71,6 @@ IMAGE_YIELD_MAP = {
         "starfruit-2.png",
         "starfruit-3.png",
     ],
-    "treasure": "chest.png",
 }
 
 
@@ -88,15 +87,11 @@ def get_stage(item: str, last_harvested: datetime, grow_time_hr: float):
     if not images:
         return 0
 
-    # Handle treasure chests
-    if isinstance(images, str):
-        return 0
-
     if not grow_time_hr:
         logger.warning(f"Item {item} does not have a grow time")
         return 0
 
-    # If never harvested, return stage 0
+    # If never harvested before, return stage 0
     if not last_harvested:
         return 0
 

@@ -1,9 +1,13 @@
+import logging
+
 from PIL import Image
 
 from utils.plant_state import get_image_for_plot_item_state
 
 GRID_SIZE = 32
 PLOT_OFFSET = 29
+
+logger = logging.getLogger(__name__)
 
 
 def place_object(base, object_image, grid_x, grid_y):
@@ -47,18 +51,21 @@ def generate_image(plot_state):
             last_harvested_at = state.data.last_harvested_at
             grow_time_hr = state.data.grow_time_hr
 
-        item_image = get_image_for_plot_item_state(
-            state.type,
-            last_harvested_at,
-            grow_time_hr
-        )
-
-        if item_image:
-            base_image = place_object(
-                base_image,
-                f"./images/files/{item_image}",
-                ord(col) - 64,
-                int(row)
+        try:
+            item_image = get_image_for_plot_item_state(
+                state.type,
+                last_harvested_at,
+                grow_time_hr
             )
+
+            if item_image:
+                base_image = place_object(
+                    base_image,
+                    f"./images/files/{item_image}",
+                    ord(col) - 64,
+                    int(row)
+                )
+        except Exception as e:
+            logger.error(f"Error placing object for {plot_id}: {e}")
 
     return base_image
