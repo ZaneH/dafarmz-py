@@ -1,13 +1,12 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 
 import discord
 from discord.ext import commands
 
-from models.shop import ShopModel
 from models.user import UserModel
 from utils.currency import format_currency
-from views.sale_view import SaleView
+from utils.users import require_user
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,15 @@ class P2P(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(name="pay", description="Pay another user")
-    async def pay(self, ctx: discord.context.ApplicationContext, user: discord.User, amount: float):
+    async def pay(self,
+        # fmt: off
+                  ctx: discord.context.ApplicationContext,
+                  user: discord.Option(discord.User, description="User to pay", required=True), # type: ignore
+                  amount: discord.Option(float, description="Amount to pay", required=True)): # type: ignore
+        # fmt: on
+        if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
+            return
+
         if amount <= 0:
             return await ctx.respond("Stop being stingy, you can only pay someone with an amount greater than 0.", ephemeral=True)
 

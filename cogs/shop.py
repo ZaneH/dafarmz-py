@@ -7,6 +7,7 @@ from discord.ext import commands
 from models.shop import ShopModel
 from models.user import UserModel
 from utils.currency import format_currency
+from utils.users import require_user
 from views.sale_view import SaleView
 
 logger = logging.getLogger(__name__)
@@ -73,13 +74,16 @@ class Shop(commands.Cog):
 
     @commands.slash_command(name="buy", description="Buy an item from the shop")
     @commands.cooldown(5, 8, commands.BucketType.user)
-    # fmt: off
     async def buy(self,
+    # fmt: off
                   ctx: discord.context.ApplicationContext,
                   type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
                   name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
                   amount: discord.Option(int, description="The amount of the item to buy", required=False) = 1): # type: ignore
     # fmt: on
+        if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
+            return
+
         if len(self.shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
@@ -124,13 +128,16 @@ class Shop(commands.Cog):
 
     @commands.slash_command(name="sell", description="Sell an item from your inventory")
     @commands.cooldown(5, 8, commands.BucketType.user)
-    # fmt: off
     async def sell(self,
+    # fmt: off
                   ctx: discord.context.ApplicationContext,
                   type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
                   name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
                   amount: discord.Option(int, description="The amount of the item to sell", required=False) = 1): # type: ignore
     # fmt: on
+        if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
+            return
+
         if len(self.shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
@@ -178,6 +185,7 @@ class Shop(commands.Cog):
         Load shop data when bot is ready.
         """
         self.shop_data = await ShopModel.find_all()
+        setattr(self.bot, "shop_data", self.shop_data)
 
 
 def setup(bot):

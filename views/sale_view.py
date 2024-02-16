@@ -5,12 +5,16 @@ from utils.currency import format_currency
 
 
 class SaleView(discord.ui.View):
+    async def on_timeout(self):
+        self.disable_all_items()
+        await self.message.edit("Transaction timed out.", view=None)
+
     def __init__(self, shop_data, buy_or_sell="buy"):
         """
         A view for buying or selling items from the shop.
         """
 
-        super().__init__()
+        super().__init__(timeout=60)
 
         self.on_purchase_callback = None
 
