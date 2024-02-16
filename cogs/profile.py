@@ -3,11 +3,14 @@ import random
 
 import discord
 from discord.ext import commands
+from db.shop_data import ShopData
 
 from models.farm import FarmModel
 from models.user import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
+from utils.level_calculator import xp_for_next_level
+from utils.progress_bar import construct_progress_bar
 from utils.users import require_user
 
 logger = logging.getLogger(__name__)
@@ -29,7 +32,8 @@ class Profile(commands.Cog):
         if not user:
             user = UserModel(discord_id=str(ctx.author.id),
                              balance=100, inventory={},
-                             created_at=discord.utils.utcnow(), stats={})
+                             created_at=discord.utils.utcnow(), stats={
+                                 "xp": 0, "harvest": {"count": 0}})
             await user.save()
 
         return await ctx.respond("You're all set! Use `/help` to get started.")
@@ -49,10 +53,14 @@ class Profile(commands.Cog):
             "Use </stats:1207963367864795207> to view statistics about your farm.",
         ])
 
+        xp = profile.stats.get("xp", 0)
         embed = discord.Embed(
             title=f"{ctx.author.display_name}'s Profile :farmer:",
             description=f"""**Balance**: {format_currency(profile.balance)}
 **Joined**: {profile.created_at.strftime("%b %d, %Y")}
+
+**Level {profile.current_level}**:
+{construct_progress_bar(int(xp), xp_for_next_level(xp), 8)}
 
 {random_tip}""",
             color=discord.Color.dark_gray(),
@@ -60,7 +68,7 @@ class Profile(commands.Cog):
 
         embed.set_thumbnail(url=ctx.author.avatar.url)
 
-        return await ctx.respond({"profile": profile}, embed=embed)
+        return await ctx.respond(embed=embed)
 
     @commands.slash_command(name="inventory", description="View your inventory")
     @commands.cooldown(1, 6, commands.BucketType.user)
@@ -80,7 +88,10 @@ class Profile(commands.Cog):
 
         embed = discord.Embed(
             title="Vote for DaFarmz :ear_of_rice:",
-            description="**Bonuses**\n- +500 :coin:\n\nThank you for helping us grow!",
+            description=f"""**Bonuses**
+- +500 {EMOJI_MAP["item:coin"]} for each vote
+
+Thank you for helping us grow!""",
             fields=[
                 discord.EmbedField(
                     name="Top.gg",
@@ -102,12 +113,12 @@ class Profile(commands.Cog):
         return await ctx.respond(profile.stats)
 
     def inventory_to_embed(self, inventory):
-        def item_type_to_name_fallback(item_type):
-            name = item_type.split(":")[-1]
+        def item_type_to_name_fallback(item_key):
+            name = item_key.split(":")[-1]
             return str(name).capitalize()
 
-        def item_type_to_type(item_type):
-            type = item_type.split(":")[0]
+        def item_key_to_type(item_key):
+            type = item_key.split(":")[0]
             return str(type).capitalize()
 
         embed = discord.Embed(
@@ -115,19 +126,19 @@ class Profile(commands.Cog):
             color=discord.Color.dark_gray(),
         )
 
-        shop_data = getattr(self.bot, "shop_data", [])
-        for item_type, item in inventory.items():
+        shop_data = ShopData.data()
+        for item_key, item in inventory.items():
             item_name = next(
-                (i.name for i in shop_data if i.type == item_type), None
+                (i.name for i in shop_data if i.key == item_key), None
             )
 
             if not item_name:
-                logger.warning(f"Item {item_type} not found in shop data")
-                item_name = item_type_to_name_fallback(item_type)
+                logger.warning(f"Item {item_key} not found in shop data")
+                item_name = item_type_to_name_fallback(item_key)
 
             embed.add_field(
-                name=f"{EMOJI_MAP[item_type]} {item_name} – {item.amount}",
-                value=f"<:RR:1207913276516859936> {item_type_to_type(item_type)}",
+                name=f"{EMOJI_MAP[item_key]} {item_name} – {item.amount}",
+                value=f"{EMOJI_MAP['ui:reply']} {item_key_to_type(item_key)}",
                 inline=False
             )
 

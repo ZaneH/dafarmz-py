@@ -53,7 +53,7 @@ def generate_image(plot_state):
 
         try:
             item_image = get_image_for_plot_item_state(
-                state.type,
+                state.key,
                 last_harvested_at,
                 grow_time_hr
             )

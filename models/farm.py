@@ -4,6 +4,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 from db.database import Database
 from models.pyobjectid import PyObjectId
+from models.shop import ShopModel
 from utils.plant_state import can_harvest
 
 
@@ -26,12 +27,12 @@ class FarmPlotItem(BaseModel):
     Represents a single plot item in the user's farm. This model contains
     info about what is currently planted in a plot space.
 
-    `type` is the type of item that is currently planted in the plot.
+    `key` is the identifier for what is currently planted in the plot.
     Typically prefixed with `<type>:` where `<type>` is the type of item.
     `data` is any additional information about the plot space.
     """
 
-    type: str
+    key: str
     data: Optional[BasePlotItemData] = None
 
     class Config:
@@ -63,7 +64,7 @@ class FarmModel(BaseModel):
         for plot_id, plot_item in self.plot.items():
             if plot_item.data and plot_item.data.yields_remaining > 0:
                 is_ready = can_harvest(
-                    plot_item.type,
+                    plot_item.key,
                     plot_item.data.last_harvested_at,
                     plot_item.data.grow_time_hr
                 )
@@ -89,6 +90,27 @@ class FarmModel(BaseModel):
             del self.plot[plot_item]
 
         return harvest_yield
+
+    def plant(self, location: str, item: ShopModel):
+        # Check if the plot location is already taken
+        if self.plot.get(location):
+            return False
+
+        yields = item.yields
+        yields_remaining = item.yields_remaining
+        grow_time_hr = item.grow_time_hr
+
+        self.plot[location] = FarmPlotItem(
+            key=item.key,
+            data=BasePlotItemData(
+                yields_remaining=yields_remaining,
+                last_harvested_at=datetime.utcnow(),
+                yields=yields,
+                grow_time_hr=grow_time_hr
+            )
+        )
+
+        return True
 
     async def save_plot(self):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)

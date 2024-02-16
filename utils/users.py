@@ -12,7 +12,7 @@ async def require_user(ctx: discord.context.ApplicationContext, user):
     :return: bool - True if the user exists, False if the user does not exist.
     """
     if not user:
-        await ctx.respond("You don't have an account yet. Use `/setup` to start your farm.", ephemeral=True)
+        await ctx.respond("You don't have an account yet. Use </setup:1207866795147657217> to start your farm.", ephemeral=True)
         return False
 
     # User exists

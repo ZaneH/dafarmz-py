@@ -52,8 +52,8 @@ class SaleView(discord.ui.View):
 
         self.items_select = discord.ui.Select(
             placeholder=f"Choose from the {self.selected_category}s to {self.buy_or_sell}",
-            options=[discord.SelectOption(label=item.name, value=item.type)
-                     for item in self.shop_data if self.selected_category.lower() in item.type.lower()],
+            options=[discord.SelectOption(label=item.name, value=item.key)
+                     for item in self.shop_data if self.selected_category.lower() in item.key.lower()],
             min_values=1, max_values=1, row=1
         )
 
@@ -67,7 +67,7 @@ class SaleView(discord.ui.View):
     async def select_item_callback(self, interaction: discord.Interaction):
         self.selected_item = interaction.data["values"][0]
         self.selected_item_label = next(
-            item for item in self.shop_data if item.type == self.selected_item).name
+            item for item in self.shop_data if item.key == self.selected_item).name
 
         self.remove_item(self.qty_minus_five)
         self.remove_item(self.qty_minus_one)
@@ -106,7 +106,7 @@ class SaleView(discord.ui.View):
         verb = "Buying" if self.buy_or_sell == "buy" else "Selling"
 
         self.full_selected_item = next(
-            item for item in self.shop_data if item.type == self.selected_item)
+            item for item in self.shop_data if item.key == self.selected_item)
 
         self.update_cost_total()
 

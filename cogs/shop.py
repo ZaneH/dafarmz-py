@@ -3,10 +3,12 @@ import logging
 
 import discord
 from discord.ext import commands
+from db.shop_data import ShopData
 
 from models.shop import ShopModel
 from models.user import UserModel
 from utils.currency import format_currency
+from utils.emoji_map import EMOJI_MAP
 from utils.users import require_user
 from views.sale_view import SaleView
 
@@ -42,19 +44,20 @@ def create_receipt(receipt_kind, buyer_discord_id, item_name, quantity, value):
 class Shop(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.shop_data = []
 
     @commands.slash_command(name="shop", description="View the shop")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def shop(self, ctx: discord.context.ApplicationContext):
-        if len(self.shop_data) == 0:
+        shop_data = ShopData.data()
+        if len(shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
         embed = discord.Embed(title="Shop", color=discord.Color.blurple())
-        for item in self.shop_data:
+        for item in shop_data:
+            print(item)
             embed.add_field(
-                name=item.name,
-                value=f"Price: {format_currency(item.cost)}",
+                name=f"{EMOJI_MAP[item.key]} {item.name}",
+                value=f"{EMOJI_MAP['ui:reply']} {format_currency(item.cost)}",
                 inline=False
             )
 
@@ -62,10 +65,10 @@ class Shop(commands.Cog):
 
     def get_purchasables(ctx: discord.AutocompleteContext):
         type = ctx.options['type']
-        shop_data = ctx.cog.shop_data
+        shop_data = ShopData.data()
 
         plant_shop_items = [
-            item.name for item in shop_data if 'plant' in item.type.lower()]
+            item.name for item in shop_data if 'plant' in item.key.lower()]
         match type:
             case 'Plants':
                 return plant_shop_items
@@ -84,12 +87,13 @@ class Shop(commands.Cog):
         if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
             return
 
-        if len(self.shop_data) == 0:
+        shop_data = ShopData.data()
+        if len(shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
         # Handle the case where no options are provided
         if type is None and name is None:
-            sale_view = SaleView(self.shop_data, "buy")
+            sale_view = SaleView(shop_data, "buy")
 
             async def _on_purchase_callback(view, item, item_name, quantity, cost):
                 success = await UserModel.give_item(ctx.author.id, item, quantity, cost)
@@ -109,12 +113,12 @@ class Shop(commands.Cog):
             await ctx.respond("## DaMart :convenience_store:", view=sale_view, ephemeral=True)
         else:
             full_item = next(
-                (item for item in self.shop_data if item.name == name), None)
+                (item for item in shop_data if item.name == name), None)
             if full_item is None:
                 return await ctx.respond("Item not found.", ephemeral=True)
 
             value_amount = full_item.cost * amount
-            success = await UserModel.give_item(ctx.author.id, full_item.type, amount, value_amount)
+            success = await UserModel.give_item(ctx.author.id, full_item.key, amount, value_amount)
             if success:
                 receipt = create_receipt(
                     "buy",
@@ -138,11 +142,12 @@ class Shop(commands.Cog):
         if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
             return
 
-        if len(self.shop_data) == 0:
+        shop_data = ShopData.data()
+        if len(shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
         if type is None and name is None:
-            sale_view = SaleView(self.shop_data, "sell")
+            sale_view = SaleView(shop_data, "sell")
 
             async def _on_purchase_callback(view, item, item_name, quantity, cost):
                 success = await UserModel.remove_item(ctx.author.id, item, quantity)
@@ -162,12 +167,12 @@ class Shop(commands.Cog):
             await ctx.respond("## DaMart :convenience_store:", view=sale_view, ephemeral=True)
         else:
             full_item = next(
-                (item for item in self.shop_data if item.name == name), None)
+                (item for item in shop_data if item.name == name), None)
             if full_item is None:
                 return await ctx.respond("Item not found.", ephemeral=True)
 
             value_amount = full_item.resell_price * amount
-            success = await UserModel.remove_item(ctx.author.id, full_item.type, amount, value_amount)
+            success = await UserModel.remove_item(ctx.author.id, full_item.key, amount, value_amount)
             if success:
                 receipt = create_receipt(
                     "sell",
@@ -184,8 +189,8 @@ class Shop(commands.Cog):
         """
         Load shop data when bot is ready.
         """
-        self.shop_data = await ShopModel.find_all()
-        setattr(self.bot, "shop_data", self.shop_data)
+        shop_data = await ShopModel.find_all()
+        ShopData.get_instance().shop_data = shop_data
 
 
 def setup(bot):

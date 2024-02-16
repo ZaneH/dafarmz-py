@@ -4,6 +4,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 from models.pyobjectid import PyObjectId
 from db.database import Database
+from utils.level_calculator import current_level
 
 
 COLLECTION_NAME = "users"
@@ -30,7 +31,7 @@ class UserModel(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     balance: int = 0
     inventory: Dict[str, UserInventoryItem] = {}
-    stats: Dict[str, int | float] = {}
+    stats: Dict[str, int | float | Any] = {}
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):
@@ -133,6 +134,10 @@ class UserModel(BaseModel):
     async def save(self):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         await collection.replace_one({"_id": self.id}, self.model_dump(), upsert=True)
+
+    @property
+    def current_level(self):
+        return current_level(self.stats.get("xp", 0))
 
     class Config:
         arbitrary_types_allowed = True
