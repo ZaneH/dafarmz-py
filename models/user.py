@@ -41,6 +41,26 @@ class UserModel(BaseModel):
         return cls(**doc) if doc else None
 
     @classmethod
+    async def give_items(cls, discord_id, items, cost=0):
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        result = await collection.update_one(
+            {
+                "discord_id": str(discord_id)
+            },
+            {
+                "$inc": {
+                    "balance": -cost,
+                    **{
+                        f"inventory.{item}.amount": amount
+                        for item, amount in items.items()
+                    }
+                },
+            },
+        )
+
+        return result.modified_count > 0
+
+    @classmethod
     async def give_item(cls, discord_id, item, amount, cost=0):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         result = await collection.update_one(
@@ -82,7 +102,7 @@ class UserModel(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        from_attributes = True
         json_encoders = {
             ObjectId: str
         }
-        from_attributes = True

@@ -10,6 +10,17 @@ from utils.plant_state import can_harvest
 COLLECTION_NAME = "farms"
 
 
+class BasePlotItemData(BaseModel):
+    """
+    Potential data for a plot item. This model is used to represent the
+    data attached to each plot item in the user's farm.
+    """
+    yields_remaining: Optional[int] = None
+    last_harvested_at: Optional[datetime] = None
+    yields: Optional[Dict[str, int]] = None
+    grow_time_hr: Optional[float] = None
+
+
 class FarmPlotItem(BaseModel):
     """
     Represents a single plot item in the user's farm. This model contains
@@ -19,13 +30,9 @@ class FarmPlotItem(BaseModel):
     Typically prefixed with `<type>:` where `<type>` is the type of item.
     `data` is any additional information about the plot space.
     """
-    class BasePlotItemData(BaseModel):
-        yields_remaining: int
-        last_harvested_at: datetime
-        yields: Dict[str, int]
 
     type: str
-    data: Optional[BasePlotItemData | Any] = None
+    data: Optional[BasePlotItemData] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -51,21 +58,37 @@ class FarmModel(BaseModel):
         return cls(**doc) if doc else None
 
     def harvest(self):
-        for plot_item in self.plot.values():
-            if plot_item.data and plot_item.data.get("yields_remaining") > 0:
+        harvest_yield = {}
+        dead_plot_items = []
+        for plot_id, plot_item in self.plot.items():
+            if plot_item.data and plot_item.data.yields_remaining > 0:
                 is_ready = can_harvest(
                     plot_item.type,
-                    plot_item.data.get("last_harvested_at"),
-                    plot_item.data.get("grow_time_hr", 1)
+                    plot_item.data.last_harvested_at,
+                    plot_item.data.grow_time_hr
                 )
 
                 if not is_ready:
                     continue
 
-                plot_item.data["yields_remaining"] -= 1
-                plot_item.data["last_harvested_at"] = datetime.utcnow()
+                plot_item.data.yields_remaining -= 1
+                plot_item.data.last_harvested_at = datetime.utcnow()
 
-                # TODO: Add the harvested item to the user's inventory
+                if plot_item.data.yields_remaining == 0:
+                    dead_plot_items.append(plot_id)
+
+                yields = getattr(plot_item.data, "yields", {})
+                for k, v in yields.items():
+                    if k in harvest_yield:
+                        harvest_yield[k] += v
+                    else:
+                        harvest_yield[k] = v
+
+        # Remove dead plot items (no yields remaining)
+        for plot_item in dead_plot_items:
+            del self.plot[plot_item]
+
+        return harvest_yield
 
     async def save_plot(self):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
@@ -77,7 +100,7 @@ class FarmModel(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        from_attributes = True
         json_encoders = {
             ObjectId: str
         }
-        from_attributes = True

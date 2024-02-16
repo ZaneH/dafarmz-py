@@ -27,7 +27,7 @@ class ShopModel(BaseModel):
         return items
 
     class Config:
+        from_attributes = True
         json_encoders = {
             ObjectId: str
         }
-        from_attributes = True

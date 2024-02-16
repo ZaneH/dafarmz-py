@@ -1,8 +1,14 @@
 import io
+import logging
+
 import discord
 from discord.ext import commands
+
 from images.merge import generate_image
 from models.farm import FarmModel
+from models.user import UserModel
+
+logger = logging.getLogger(__name__)
 
 
 class Farm(commands.Cog):
@@ -25,8 +31,12 @@ class Farm(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def harvest(self, ctx: discord.context.ApplicationContext):
         farm = await FarmModel.find_by_discord_id(ctx.author.id)
-        farm.harvest()
+        harvest_yield = farm.harvest()
         await farm.save_plot()
+
+        await UserModel.give_items(ctx.author.id, harvest_yield)
+        logger.info(f"User {ctx.author.id} harvested {harvest_yield}")
+
         return await ctx.respond("You've harvested your farm!")
 
 

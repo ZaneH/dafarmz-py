@@ -1,4 +1,7 @@
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 IMAGE_YIELD_MAP = {
     "plant:apple": [
@@ -83,11 +86,15 @@ def get_stage(item: str, last_harvested: datetime, grow_time_hr: float):
     """
     images = IMAGE_YIELD_MAP.get(item)
     if not images:
-        return None
+        return 0
 
     # Handle treasure chests
     if isinstance(images, str):
-        return None
+        return 0
+
+    if not grow_time_hr:
+        logger.warning(f"Item {item} does not have a grow time")
+        return 0
 
     # If never harvested, return stage 0
     if not last_harvested:
@@ -134,7 +141,7 @@ def get_image_for_plot_item_state(item: str, last_harvested: datetime, grow_time
         raise ValueError(f"Item {item} does not have an image map")
 
     stage = get_stage(item, last_harvested, grow_time_hr)
-    if stage is None:
-        return images  # For treasure chests (non-stage based items)
+    if isinstance(images, str):
+        return images
 
     return images[stage]

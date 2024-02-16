@@ -44,8 +44,8 @@ def generate_image(plot_state):
         last_harvested_at = None
         grow_time_hr = None
         if state.data:
-            last_harvested_at = state.data.get("last_harvested_at", None)
-            grow_time_hr = state.data.get("grow_time_hr", 1)
+            last_harvested_at = state.data.last_harvested_at
+            grow_time_hr = state.data.grow_time_hr
 
         item_image = get_image_for_plot_item_state(
             state.type,
