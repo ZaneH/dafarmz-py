@@ -5,12 +5,13 @@ import discord
 from discord.ext import commands
 from db.shop_data import ShopData
 
-from images.merge import generate_image
+from images.render import render_farm
 from models.farm import FarmModel
 from models.user import UserModel
 from utils.emoji_map import EMOJI_MAP
 from utils.users import require_user
 from views.choose_plant_view import ChoosePlantView
+from views.farm_view import FarmView
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,22 @@ class Farm(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    def create_farm_embed(self, ctx: discord.context.ApplicationContext, farm: FarmModel):
+        embed = discord.Embed(
+            title=f"{ctx.author.display_name}'s Farm",
+            color=discord.Color.embed_background()
+        )
+
+        embed.set_image(url="attachment://farm.png")
+        return embed
+
+    async def start_farm_view(
+            self, ctx: discord.context.ApplicationContext, farm: FarmModel):
+        farm_view = FarmView(farm, ctx.author)
+        await ctx.respond(embed=self.create_farm_embed(ctx, farm),
+                          view=farm_view,
+                          files=[await render_farm(farm)])
+
     @commands.slash_command(name="farm", description="View your farm")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def farm(self, ctx: discord.context.ApplicationContext):
@@ -26,12 +43,16 @@ class Farm(commands.Cog):
         if not await require_user(ctx, farm):
             return
 
-        image = generate_image(farm.plot)
-        with io.BytesIO() as image_binary:
-            image.save(image_binary, "PNG")
-            image_binary.seek(0)
-            file = discord.File(image_binary, filename="farm.png")
-            return await ctx.respond(file=file)
+        await self.start_farm_view(ctx, farm)
+
+    @commands.slash_command(name="plot", description="View your farm")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def farm(self, ctx: discord.context.ApplicationContext):
+        farm = await FarmModel.find_by_discord_id(ctx.author.id)
+        if not await require_user(ctx, farm):
+            return
+
+        await self.start_farm_view(ctx, farm)
 
     @commands.slash_command(name="harvest", description="Harvest your farm")
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -86,17 +107,19 @@ class Farm(commands.Cog):
 
             if item and farm.plant(location, item):
                 await farm.save_plot()
-                return await ctx.respond(f"You've planted a {plant} on your farm!")
+                await ctx.respond(f"You've planted a {plant} on your farm!")
+                await UserModel.inc_stat(user.discord_id, f"plant.{item.key}")
             else:
-                return await ctx.respond("You can't plant that here!")
+                await ctx.respond("You can't plant that here!")
         else:
             async def _on_plant_callback(plant, view: ChoosePlantView):
                 farm = await FarmModel.find_by_discord_id(ctx.author.id)
                 if farm.plant(location, plant):
                     await farm.save_plot()
-                    return await view.message.edit(f"You've planted a {plant.name} {EMOJI_MAP[plant.key]} on {location}!", view=None)
+                    await view.message.edit(f"You've planted a {plant.name} {EMOJI_MAP[plant.key]} on {location}!", view=None)
+                    await UserModel.inc_stat(user.discord_id, f"plant.{plant.key}")
                 else:
-                    return await view.message.edit("You can't plant that here!", view=None)
+                    await view.message.edit("You can't plant that here!", view=None)
 
             choose_plant_view = ChoosePlantView()
             choose_plant_view.chose_plant_callback = _on_plant_callback
