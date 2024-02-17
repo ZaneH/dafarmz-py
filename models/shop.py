@@ -7,18 +7,29 @@ from models.pyobjectid import PyObjectId
 COLLECTION_NAME = "shop"
 
 
+class YieldModel(BaseModel):
+    """
+    Represents a singular yield.
+    """
+    amount: int = 0
+    xp: int = 0
+
+    class Config:
+        from_attributes = True
+
+
 class ShopModel(BaseModel):
     """
     Represents a singular shop item from the database.
     """
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
-    name: str = ""
-    cost: int = 0
-    key: str = "Plants"
-    grow_time_hr: float = 1
-    resell_price: int = 0
-    yields: Dict[str, int] = {}
-    yields_remaining: int = 0
+    key: str = ""  # The unique key for the item
+    name: str = ""  # The display name of the item
+    cost: int = 0  # The cost of the item (coins)
+    grow_time_hr: float = 1  # The time it takes to grow per yield
+    resell_price: int = 0  # The price to resell the item
+    yields: Dict[str, YieldModel] = {}  # The yields of the item
+    total_yields: int = 0  # The amount of yields the item can produce
 
     @classmethod
     async def find_all(cls):

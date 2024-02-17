@@ -63,31 +63,30 @@ class FarmModel(BaseModel):
         dead_plot_items = []
         xp_earned = 0
         for plot_id, plot_item in self.plot.items():
-            if plot_item.data and plot_item.data.yields_remaining > 0:
+            if plot_item.data:
                 is_ready = can_harvest(
                     plot_item.key,
                     plot_item.data.last_harvested_at,
                     plot_item.data.grow_time_hr
                 )
 
-                if not is_ready:
-                    continue
+                if is_ready:
+                    # Determine XP based on item's tier
+                    xp_earned += 2
 
-                # Determine XP based on item's tier
-                xp_earned += 2
+                    plot_item.data.yields_remaining -= 1
+                    plot_item.data.last_harvested_at = datetime.utcnow()
 
-                plot_item.data.yields_remaining -= 1
-                plot_item.data.last_harvested_at = datetime.utcnow()
+                    yields = getattr(plot_item.data, "yields", {})
+                    for k, v in yields.items():
+                        if k in harvest_yield:
+                            harvest_yield[k] += v
+                        else:
+                            harvest_yield[k] = v
 
+                # Mark plot item as dead if no yields remaining
                 if plot_item.data.yields_remaining == 0:
                     dead_plot_items.append(plot_id)
-
-                yields = getattr(plot_item.data, "yields", {})
-                for k, v in yields.items():
-                    if k in harvest_yield:
-                        harvest_yield[k] += v
-                    else:
-                        harvest_yield[k] = v
 
         # Remove dead plot items (no yields remaining)
         for plot_item in dead_plot_items:

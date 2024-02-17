@@ -52,10 +52,12 @@ class Shop(commands.Cog):
         if len(shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
-        embed = discord.Embed(title="Shop", color=discord.Color.blurple())
+        embed = discord.Embed(title="Jason's Shop",
+                              color=discord.Color.blurple())
+        embed.set_thumbnail(url="https://i.imgur.com/3CQRKGY.png")
         for item in shop_data:
             embed.add_field(
-                name=f"{EMOJI_MAP[item.key]} {item.name}",
+                name=f"{EMOJI_MAP.get(item.key, '')} {item.name}",
                 value=f"{EMOJI_MAP['ui:reply']} {format_currency(item.cost)}",
                 inline=False
             )

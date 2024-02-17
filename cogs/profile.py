@@ -130,19 +130,23 @@ Thank you for helping us grow!""",
 
         shop_data = ShopData.data()
         for item_key, item in inventory.items():
-            item_name = next(
-                (i.name for i in shop_data if i.key == item_key), None
-            )
+            try:
+                item_name = next(
+                    (i.name for i in shop_data if i.key == item_key), None
+                )
 
-            if not item_name:
-                logger.warning(f"Item {item_key} not found in shop data")
-                item_name = item_type_to_name_fallback(item_key)
+                if not item_name:
+                    logger.warning(f"Item {item_key} not found in shop data")
+                    item_name = item_type_to_name_fallback(item_key)
 
-            embed.add_field(
-                name=f"{EMOJI_MAP[item_key]} {item_name} – {item.amount}",
-                value=f"{EMOJI_MAP['ui:reply']} {item_key_to_type(item_key)}",
-                inline=False
-            )
+                embed.add_field(
+                    name=f"{EMOJI_MAP[item_key]} {item_name} – {item.amount}",
+                    value=f"{EMOJI_MAP['ui:reply']} {item_key_to_type(item_key)}",
+                    inline=False
+                )
+            except Exception as e:
+                logger.error(
+                    f"Error adding item {item_key} to inventory embed: {e}")
 
         return embed
 
