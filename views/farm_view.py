@@ -181,9 +181,6 @@ class FarmView(discord.ui.View):
                     f"plant.{self.selected_plant.key}"
                 )
 
-                self.back_button = self.create_back_button()
-                self.add_item(self.back_button)
-
                 await interaction.response.edit_message(
                     content=f"You've planted a {self.selected_plant.name} {EMOJI_MAP[self.selected_plant.key]} on {location}!",
                     files=[await render_farm(self.farm)],

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 from bson import ObjectId
 from pydantic import BaseModel, Field
 from db.database import Database
@@ -100,7 +100,7 @@ class FarmModel(BaseModel):
             return False
 
         yields = item.yields
-        yields_remaining = item.yields_remaining
+        yields_remaining = item.total_yields
         grow_time_hr = item.grow_time_hr
 
         self.plot[location] = FarmPlotItem(
