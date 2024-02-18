@@ -85,7 +85,7 @@ class FarmModel(BaseModel):
                             harvest_yield[k] = v
 
                 # Mark plot item as dead if no yields remaining
-                if plot_item.data.yields_remaining == 0:
+                if plot_item.data.yields_remaining <= 0:
                     dead_plot_items.append(plot_id)
 
         # Remove dead plot items (no yields remaining)
