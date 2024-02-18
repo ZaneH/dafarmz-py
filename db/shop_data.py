@@ -5,12 +5,17 @@ from models.shop import ShopModel
 
 class ShopData:
     def __init__(self):
-        self.shop_data = []
+        self.buyable_data = []
+        self.all_shop_data = []
         self._instance = None
 
     @classmethod
-    def data(cls) -> List[ShopModel]:
-        return cls.get_instance().shop_data
+    def buyable(cls) -> List[ShopModel]:
+        return cls.get_instance().buyable_data
+
+    @classmethod
+    def all(cls) -> List[ShopModel]:
+        return cls.get_instance().all_shop_data
 
     @classmethod
     def get_instance(cls):

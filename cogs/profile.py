@@ -10,7 +10,7 @@ from models.user import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
 from utils.level_calculator import level_based_on_xp, xp_required_for_level, next_level_xp
-from utils.progress_bar import construct_progress_bar
+from utils.progress_bar import construct_xp_progress_bar
 from utils.users import require_user
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class Profile(commands.Cog):
 **Joined**: {profile.created_at.strftime("%b %d, %Y")}
 
 **Level {profile.current_level}** – {xp}/{next_milestone} XP:
-{construct_progress_bar(int(xp), 8)}
+{construct_xp_progress_bar(int(xp), 8)}
 
 {random_tip}""",
             color=discord.Color.dark_gray(),
@@ -127,7 +127,7 @@ Thank you for helping us grow!""",
             color=discord.Color.dark_gray(),
         )
 
-        shop_data = ShopData.data()
+        shop_data = ShopData.buyable()
         for item_key, item in inventory.items():
             try:
                 item_name = next(

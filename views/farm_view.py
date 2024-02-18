@@ -20,9 +20,9 @@ class FarmView(discord.ui.View):
         super().__init__(timeout=timeout)
 
         self.farm = farm
-        self.farm_owner = farm_owner
+        self.discord_user = farm_owner
 
-        self.plant_select = None
+        self.seed_select = None
         self.plant_button = discord.ui.Button(
             label="Plant", style=discord.ButtonStyle.primary, row=0, emoji=EMOJI_MAP["emote:potted"]
         )
@@ -60,35 +60,35 @@ class FarmView(discord.ui.View):
 
     async def on_plant_clicked(self, interaction: discord.Interaction):
         self.remove_stage_one_buttons()
-        self.remove_item(self.plant_select)
+        self.remove_item(self.seed_select)
 
         self.back_button = self.create_back_button()
         self.add_item(self.back_button)
 
-        self.shop_data = ShopData.data()
-        plants = [item for item in self.shop_data if "plant:" in item.key]
+        self.shop_data = ShopData.buyable()
+        seeds = [item for item in self.shop_data if "seed:" in item.key]
 
-        self.plant_select = discord.ui.Select(
-            placeholder="Choose a plant",
+        self.seed_select = discord.ui.Select(
+            placeholder="Choose a plant seed",
             row=1,
             options=[
                 discord.SelectOption(
-                    label=plant.name,
-                    value=plant.key
-                ) for plant in plants
+                    label=seed.name,
+                    value=seed.key
+                ) for seed in seeds
             ],
         )
 
-        self.plant_select.callback = self.on_select_plant_callback
+        self.seed_select.callback = self.on_select_seed_callback
 
-        self.add_item(self.plant_select)
+        self.add_item(self.seed_select)
         await interaction.response.edit_message(view=self)
 
     async def on_harvest_clicked(self, interaction: discord.Interaction):
         (harvest_yield, xp_earned) = self.farm.harvest()
         await self.farm.save_plot()
 
-        await UserModel.give_items(self.farm_owner.id, harvest_yield, 0, {
+        await UserModel.give_items(self.discord_user.id, harvest_yield, 0, {
             "xp": xp_earned,
             "harvest.xp": xp_earned,
             "harvest.count": 1,
@@ -97,6 +97,9 @@ class FarmView(discord.ui.View):
                 for item_key, amount in harvest_yield.items()
             }
         })
+
+        UserModel.increment_challenge_progress(
+            self.discord_user.id, "harvest", "count")
 
         formatted_yield = ""
         for item, amount in harvest_yield.items():
@@ -114,7 +117,7 @@ class FarmView(discord.ui.View):
 
         await interaction.response.edit_message(
             content=f"You've harvested your farm and earned +**{xp_earned} XP**!\n\n{formatted_yield}",
-            embed=self.create_farm_embed(self.farm_owner.display_name),
+            embed=self.create_farm_embed(self.discord_user.display_name),
             files=[await render_farm(self.farm)],
             view=self
         )
@@ -125,7 +128,7 @@ class FarmView(discord.ui.View):
             view=self
         )
 
-    async def on_select_plant_callback(self, interaction: discord.Interaction):
+    async def on_select_seed_callback(self, interaction: discord.Interaction):
         self.selected_plant = next(
             plant for plant in self.shop_data if plant.key == interaction.data["values"][0])
 
@@ -153,7 +156,7 @@ class FarmView(discord.ui.View):
         )
         self.numer_dropdown.callback = self.on_select_plot_number
 
-        self.remove_item(self.plant_select)
+        self.remove_item(self.seed_select)
         self.add_item(self.letter_dropdown)
         self.add_item(self.numer_dropdown)
 
@@ -180,13 +183,15 @@ class FarmView(discord.ui.View):
                     self.farm.discord_id,
                     f"plant.{self.selected_plant.key}"
                 )
+                await UserModel.increment_challenge_progress(
+                    self.farm.discord_id, "plant", self.selected_plant.key)
 
                 await interaction.response.edit_message(
                     content=f"You've planted a {self.selected_plant.name} {EMOJI_MAP[self.selected_plant.key]} on {location}!",
                     files=[await render_farm(self.farm)],
                     view=self,
                     embed=self.create_farm_embed(
-                        self.farm_owner.display_name
+                        self.discord_user.display_name
                     ),
                 )
         else:
@@ -218,7 +223,7 @@ class FarmView(discord.ui.View):
         self.remove_item(self.letter_dropdown)
         self.remove_item(self.numer_dropdown)
         self.remove_item(self.back_button)
-        self.remove_item(self.plant_select)
+        self.remove_item(self.seed_select)
 
         self.add_stage_one_buttons()
 

@@ -11,6 +11,17 @@ from utils.plant_state import can_harvest
 COLLECTION_NAME = "farms"
 
 
+class YieldModel(BaseModel):
+    """
+    Represents a singular yield.
+    """
+    amount: int = 0
+    xp: int = 0
+
+    class Config:
+        from_attributes = True
+
+
 class BasePlotItemData(BaseModel):
     """
     Potential data for a plot item. This model is used to represent the
@@ -18,7 +29,7 @@ class BasePlotItemData(BaseModel):
     """
     yields_remaining: Optional[int] = None
     last_harvested_at: Optional[datetime] = None
-    yields: Optional[Dict[str, int]] = None
+    yields: Optional[Dict[str, YieldModel]] = None
     grow_time_hr: Optional[float] = None
 
 
@@ -99,12 +110,16 @@ class FarmModel(BaseModel):
         if self.plot.get(location):
             return False
 
+        # Confirm this is a seed
+        if not item.key.startswith("seed:"):
+            return False
+
         yields = item.yields
         yields_remaining = item.total_yields
         grow_time_hr = item.grow_time_hr
 
         self.plot[location] = FarmPlotItem(
-            key=item.key,
+            key=item.key.replace("seed:", "plant:"),
             data=BasePlotItemData(
                 yields_remaining=yields_remaining,
                 last_harvested_at=datetime.utcnow(),

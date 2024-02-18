@@ -9,7 +9,7 @@ from models.farm import FarmModel
 from models.user import UserModel
 from utils.emoji_map import EMOJI_MAP
 from utils.users import require_user
-from views.choose_plant_view import ChoosePlantView
+from views.choose_seed_view import ChooseSeedView
 from views.farm_view import FarmView
 
 logger = logging.getLogger(__name__)
@@ -92,36 +92,36 @@ class Farm(commands.Cog):
         # fmt: off
                     ctx: discord.context.ApplicationContext,
                     location: discord.Option(str, "The location to plant the crop (e.g. A1)", required=True), # type: ignore
-                    plant: discord.Option(str, "What to plant", required=False)): # type: ignore
+                    seed: discord.Option(str, "Seed to plant", required=False)): # type: ignore
         # fmt: on
         user = await UserModel.find_by_discord_id(ctx.author.id)
         if not await require_user(ctx, user):
             return
 
-        if plant:
+        if seed:
             farm = await FarmModel.find_by_discord_id(ctx.author.id)
-            shop_data = ShopData.data()
+            shop_data = ShopData.buyable()
             item = next(
-                (item for item in shop_data if item.key == plant), None)
+                (item for item in shop_data if item.key == seed), None)
 
             if item and farm.plant(location, item):
                 await farm.save_plot()
-                await ctx.respond(f"You've planted a {plant} on your farm!")
+                await ctx.respond(f"You've planted a {seed} on your farm!")
                 await UserModel.inc_stat(user.discord_id, f"plant.{item.key}")
             else:
                 await ctx.respond("You can't plant that here!")
         else:
-            async def _on_plant_callback(plant, view: ChoosePlantView):
+            async def _on_plant_callback(seed, view: ChooseSeedView):
                 farm = await FarmModel.find_by_discord_id(ctx.author.id)
-                if farm.plant(location, plant):
+                if farm.plant(location, seed):
                     await farm.save_plot()
-                    await view.message.edit(f"You've planted a {plant.name} {EMOJI_MAP[plant.key]} on {location}!", view=None)
-                    await UserModel.inc_stat(user.discord_id, f"plant.{plant.key}")
+                    await view.message.edit(f"You've planted a {seed.name} {EMOJI_MAP[seed.key]} on {location}!", view=None)
+                    await UserModel.inc_stat(user.discord_id, f"plant.{seed.key}")
                 else:
                     await view.message.edit("You can't plant that here!", view=None)
 
-            choose_plant_view = ChoosePlantView()
-            choose_plant_view.chose_plant_callback = _on_plant_callback
+            choose_plant_view = ChooseSeedView()
+            choose_plant_view.chose_seed_callback = _on_plant_callback
             await ctx.respond("Choose something to plant on your farm", view=choose_plant_view)
 
 

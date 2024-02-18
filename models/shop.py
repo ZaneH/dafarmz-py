@@ -40,6 +40,17 @@ class ShopModel(BaseModel):
 
         return items
 
+    @classmethod
+    async def find_buyable(cls):
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        cursor = collection.find({
+            "cost": {"$gt": 0}
+        })
+        items = await cursor.to_list(length=None)
+        items = [cls(**item) for item in items]
+
+        return items
+
     class Config:
         from_attributes = True
         json_encoders = {

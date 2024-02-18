@@ -48,7 +48,7 @@ class Shop(commands.Cog):
     @commands.slash_command(name="shop", description="View the shop")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def shop(self, ctx: discord.context.ApplicationContext):
-        shop_data = ShopData.data()
+        shop_data = ShopData.buyable()
         if len(shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
@@ -66,7 +66,7 @@ class Shop(commands.Cog):
 
     def get_purchasables(ctx: discord.AutocompleteContext):
         type = ctx.options['type']
-        shop_data = ShopData.data()
+        shop_data = ShopData.buyable()
 
         plant_shop_items = [
             item.name for item in shop_data if 'plant' in item.key.lower()]
@@ -88,7 +88,7 @@ class Shop(commands.Cog):
         if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
             return
 
-        shop_data = ShopData.data()
+        shop_data = ShopData.buyable()
         if len(shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
@@ -143,7 +143,7 @@ class Shop(commands.Cog):
         if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
             return
 
-        shop_data = ShopData.data()
+        shop_data = ShopData.buyable()
         if len(shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
@@ -190,8 +190,11 @@ class Shop(commands.Cog):
         """
         Load shop data when bot is ready.
         """
-        shop_data = await ShopModel.find_all()
-        ShopData.get_instance().shop_data = shop_data
+        all_items = await ShopModel.find_all()
+        buyable_items = await ShopModel.find_buyable()
+
+        ShopData.get_instance().all_shop_data = all_items
+        ShopData.get_instance().buyable_data = buyable_items
 
 
 def setup(bot):

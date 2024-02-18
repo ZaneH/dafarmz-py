@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 from bson import ObjectId
 from pydantic import BaseModel, Field
+from pymongo import ReturnDocument
+from models.challenges import ChallengesModel
 from models.pyobjectid import PyObjectId
 from db.database import Database
 from utils.level_calculator import level_based_on_xp
@@ -32,6 +34,7 @@ class UserModel(BaseModel):
     balance: int = 0
     inventory: Dict[str, UserInventoryItem] = {}
     stats: Dict[str, int | float | Any] = {}
+    challenges: Optional[ChallengesModel] = None
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):
@@ -45,9 +48,10 @@ class UserModel(BaseModel):
     @classmethod
     async def give_items(cls, discord_id, items, cost=0, stats={}):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
-        result = await collection.update_one(
+        result = await collection.find_one_and_update(
             {
-                "discord_id": str(discord_id)
+                "discord_id": str(discord_id),
+                "balance": {"$gte": cost}
             },
             {
                 "$inc": {
@@ -62,9 +66,10 @@ class UserModel(BaseModel):
                     }
                 },
             },
+            return_document=ReturnDocument.AFTER
         )
 
-        return result.modified_count > 0
+        return cls(**result) if result else None
 
     @classmethod
     async def give_item(cls, discord_id, item, amount, cost=0):
@@ -134,6 +139,46 @@ class UserModel(BaseModel):
         )
 
         return result.modified_count > 0
+
+    @classmethod
+    async def accept_challenge(cls, discord_id, challenge_index):
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        result = await collection.find_one_and_update(
+            {
+                "discord_id": str(discord_id),
+            },
+            {
+                "$set": {
+                    f"challenges.options.{challenge_index}.accepted": True
+                },
+            },
+            return_document=ReturnDocument.AFTER
+        )
+
+        return cls(**result) if result else None
+
+    @classmethod
+    async def increment_challenge_progress(cls, discord_id, action, item, increment=1):
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        user = await collection.find_one({"discord_id": str(discord_id)})
+
+        if not user:
+            return None  # User not found
+
+        for index, challenge in enumerate(user["challenges"]["options"]):
+            if challenge.get("accepted", False) and action in challenge["goal_stats"]:
+                # Check if the item matches what's required in the goal_stats
+                if item in challenge["goal_stats"][action]:
+                    # Increment progress
+                    progress_path = f"challenges.options.{index}.progress.{action}.{item}"
+                    await collection.update_one(
+                        {"discord_id": str(discord_id)},
+                        {"$inc": {progress_path: increment}}
+                    )
+
+        # Return the updated user document
+        updated_user = await collection.find_one({"discord_id": str(discord_id)})
+        return cls(**updated_user) if updated_user else None
 
     async def save(self):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)

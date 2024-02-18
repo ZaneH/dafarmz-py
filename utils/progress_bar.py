@@ -11,7 +11,7 @@ class ProgressBarEmoji:
     PEM = '<:PEM:1207983204040974377>'
 
 
-def construct_progress_bar(current_xp, total_segments=10):
+def construct_xp_progress_bar(current_xp, total_segments=10):
     """
     Constructs a progress bar made of emojis based on the current XP within
     the current level for an exponential progression system.
@@ -54,6 +54,38 @@ def construct_progress_bar(current_xp, total_segments=10):
     if half_filled:
         progress_bar += ProgressBarEmoji.PHF
         filled_segments += 1  # Include the half-filled in the total filled count
+
+    # Add empty middle segments
+    empty_segments = total_segments - filled_segments
+    progress_bar += ProgressBarEmoji.PEM * empty_segments
+
+    # End with the closed and empty end piece
+    progress_bar += ProgressBarEmoji.PEE
+
+    return progress_bar
+
+
+def construct_normal_progrss_bar(percent: float, total_segments=10):
+    """
+    Constructs a progress bar made of emojis based on the given percentage.
+    Useful for showing progress of a task.
+
+    :param percent: The percentage of the progress.
+    :param total_segments: The total number of segments in the progress bar, excluding the beginning and end pieces.
+    :return: A string representing the progress bar.
+    """
+
+    if percent > 1:
+        percent /= 100
+
+    # Determine the number of filled segments
+    filled_segments = math.ceil(percent * total_segments)
+
+    # Start with the beginning piece (filled if any progress, empty otherwise)
+    progress_bar = ProgressBarEmoji.PFB if filled_segments > 0 else ProgressBarEmoji.PEB
+
+    # Add filled middle segments
+    progress_bar += ProgressBarEmoji.PFM * filled_segments
 
     # Add empty middle segments
     empty_segments = total_segments - filled_segments
