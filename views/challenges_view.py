@@ -6,6 +6,11 @@ from utils.embeds import create_embed_for_challenges
 
 
 class ChallengesView(discord.ui.View):
+    """
+    A view that allows a user to view their challenge, refresh their challenges,
+    select a challenge, accept a challenge, view their progress, and claim rewards.
+    Triggered with /challenges
+    """
     async def on_timeout(self) -> None:
         self.clear_items()
         await self.message.edit(

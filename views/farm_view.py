@@ -9,6 +9,11 @@ from utils.emoji_map import EMOJI_MAP
 
 
 class FarmView(discord.ui.View):
+    """
+    A view that allows a user to view their farm, plant a crop, harvest a crop,
+    and upgrade their farm. More features will be added in the future.
+    Triggered with /farm
+    """
     async def on_timeout(self):
         self.clear_items()
         await self.message.edit(

@@ -5,9 +5,13 @@ from utils.currency import format_currency
 
 
 class SaleView(discord.ui.View):
+    """
+    A view for buying or selling items from the shop.
+    Triggered with /buy or /sell
+    """
     async def on_timeout(self):
         self.disable_all_items()
-        await self.message.edit("Transaction timed out.", view=None)
+        await self.message.edit("Transaction ended.", view=None)
 
     def __init__(self, shop_data, buy_or_sell="buy"):
         """
@@ -34,19 +38,28 @@ class SaleView(discord.ui.View):
         self.qty_cancel = None  # Cancel button
         self.qty_confirm = None  # Confirm button
 
-    @discord.ui.select(placeholder=f"Pick an item type...",
-                       options=[
-                           discord.SelectOption(label="Plants", value="plant"),
-                           discord.SelectOption(
-                               label="Machines", value="machine"),
-                           discord.SelectOption(label="Tools", value="tool"),
-                           discord.SelectOption(
-                               label="Upgrades", value="upgrade")
-                       ],
-                       min_values=1, max_values=1,
-                       row=0)
-    async def select_category(self, select, interaction):
-        self.selected_category: str = select.values[0]
+        self.item_type_select = discord.ui.Select(
+            placeholder=f"Pick an item type...",
+            options=[
+                discord.SelectOption(label="Seeds", value="seed"),
+                discord.SelectOption(label="Plants", value="plant"),
+                discord.SelectOption(label="Machines", value="machine"),
+                discord.SelectOption(label="Tools", value="tool"),
+                discord.SelectOption(label="Upgrades", value="upgrade")
+            ],
+            min_values=1, max_values=1,
+            row=0
+        )
+
+        self.item_type_select.callback = self.select_category
+        self.add_item(self.item_type_select)
+
+    async def select_category(self, interaction):
+        self.selected_category: str = interaction.data["values"][0]
+
+        # Set default=True for the selected option
+        for option in self.item_type_select.options:
+            option.default = option.value == self.selected_category
 
         self.remove_item(self.items_select)
 
@@ -61,13 +74,17 @@ class SaleView(discord.ui.View):
 
         self.add_item(self.items_select)
 
-        await self.message.edit(f"## DaMart :convenience_store:\nBrowsing {self.selected_category}s...", view=self)
+        await self.message.edit(f"## Jason's Shop\nBrowsing {self.selected_category}s...", view=self)
         await interaction.response.defer()
 
     async def select_item_callback(self, interaction: discord.Interaction):
         self.selected_item = interaction.data["values"][0]
         self.selected_item_label = next(
             item for item in self.shop_data if item.key == self.selected_item).name
+
+        # Set default=True for the selected option
+        for option in self.items_select.options:
+            option.default = option.value == interaction.data["values"][0]
 
         self.remove_item(self.qty_minus_five)
         self.remove_item(self.qty_minus_one)

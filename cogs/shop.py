@@ -20,7 +20,7 @@ def create_receipt(receipt_kind, buyer_discord_id, item_name, quantity, value):
         f"{receipt_kind} from {buyer_discord_id}: {quantity}x {item_name}")
 
     receipt = discord.Embed(
-        title="DaMart :convenience_store:",
+        title="Jason's Shop",
         description=f"Receipt for <@{buyer_discord_id}>",
         color=discord.Color.random()
     )
@@ -37,7 +37,7 @@ def create_receipt(receipt_kind, buyer_discord_id, item_name, quantity, value):
     formatted_date = datetime.utcnow().strftime(
         "%b %d, %Y")
     receipt.set_footer(
-        text=f"Thank you for choosing DaMart!\n{formatted_date}")
+        text=f"Thank you, come again!\n{formatted_date}")
     return receipt
 
 
@@ -111,7 +111,7 @@ class Shop(commands.Cog):
                     await ctx.respond("You don't have enough to buy that.", ephemeral=True)
 
             sale_view.on_purchase_callback = _on_purchase_callback
-            await ctx.respond("## DaMart :convenience_store:", view=sale_view, ephemeral=True)
+            await ctx.respond("## Jason's Shop", view=sale_view, ephemeral=True)
         else:
             full_item = next(
                 (item for item in shop_data if item.name == name), None)
@@ -165,7 +165,7 @@ class Shop(commands.Cog):
                     await ctx.respond("You don't have enough to do that.", ephemeral=True)
 
             sale_view.on_purchase_callback = _on_purchase_callback
-            await ctx.respond("## DaMart :convenience_store:", view=sale_view, ephemeral=True)
+            await ctx.respond("## Jason's Shop", view=sale_view, ephemeral=True)
         else:
             full_item = next(
                 (item for item in shop_data if item.name == name), None)
