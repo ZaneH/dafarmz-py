@@ -1,21 +1,13 @@
 from typing import Dict
+
 from bson import ObjectId
 from pydantic import BaseModel, Field
+
 from db.database import Database
 from models.pyobjectid import PyObjectId
+from models.yieldmodel import YieldModel
 
 COLLECTION_NAME = "shop"
-
-
-class YieldModel(BaseModel):
-    """
-    Represents a singular yield.
-    """
-    amount: int = 0
-    xp: int = 0
-
-    class Config:
-        from_attributes = True
 
 
 class ShopModel(BaseModel):

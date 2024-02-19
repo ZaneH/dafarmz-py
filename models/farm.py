@@ -1,25 +1,16 @@
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Any, Dict, Optional, Tuple
+
 from bson import ObjectId
 from pydantic import BaseModel, Field
+
 from db.database import Database
 from models.pyobjectid import PyObjectId
 from models.shop import ShopModel
+from models.yieldmodel import YieldModel
 from utils.plant_state import can_harvest
 
-
 COLLECTION_NAME = "farms"
-
-
-class YieldModel(BaseModel):
-    """
-    Represents a singular yield.
-    """
-    amount: int = 0
-    xp: int = 0
-
-    class Config:
-        from_attributes = True
 
 
 class BasePlotItemData(BaseModel):
@@ -29,7 +20,7 @@ class BasePlotItemData(BaseModel):
     """
     yields_remaining: Optional[int] = None
     last_harvested_at: Optional[datetime] = None
-    yields: Optional[Dict[str, YieldModel]] = None
+    yields: Dict[str, YieldModel] = {}
     grow_time_hr: Optional[float] = None
 
 
@@ -69,10 +60,17 @@ class FarmModel(BaseModel):
 
         return cls(**doc) if doc else None
 
-    def harvest(self):
+    def harvest(self) -> Tuple[Dict[str, YieldModel], int]:
+        """
+        Harvests the user's farm. This method will remove any dead plot items
+        and return the yields and xp earned from the harvest.
+
+        :return: A tuple containing the yields and xp earned from the harvest.
+        """
         harvest_yield = {}
         dead_plot_items = []
         xp_earned = 0
+
         for plot_id, plot_item in self.plot.items():
             if plot_item.data:
                 is_ready = can_harvest(
@@ -82,13 +80,14 @@ class FarmModel(BaseModel):
                 )
 
                 if is_ready:
-                    # Determine XP based on item's tier
-                    xp_earned += 2
+                    for yield_item in plot_item.data.yields.values():
+                        xp_earned += yield_item.xp
 
                     plot_item.data.yields_remaining -= 1
                     plot_item.data.last_harvested_at = datetime.utcnow()
 
-                    yields = getattr(plot_item.data, "yields", {})
+                    yields: Dict[str, YieldModel] | Any = getattr(
+                        plot_item.data, "yields", {})
                     for k, v in yields.items():
                         if k in harvest_yield:
                             harvest_yield[k] += v
@@ -119,6 +118,7 @@ class FarmModel(BaseModel):
         grow_time_hr = item.grow_time_hr
 
         self.plot[location] = FarmPlotItem(
+            # Replace the seed type with 'plant:' after planting
             key=item.key.replace("seed:", "plant:"),
             data=BasePlotItemData(
                 yields_remaining=yields_remaining,

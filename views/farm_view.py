@@ -98,12 +98,12 @@ class FarmView(discord.ui.View):
             }
         })
 
-        UserModel.increment_challenge_progress(
+        await UserModel.increment_challenge_progress(
             self.discord_user.id, "harvest", "count")
 
         formatted_yield = ""
-        for item, amount in harvest_yield.items():
-            formatted_yield += f"{EMOJI_MAP[item]} {amount}x\n"
+        for item, yields in harvest_yield.items():
+            formatted_yield += f"{EMOJI_MAP[item]} {yields.amount}x\n"
 
         self.back_button = self.create_back_button()
         self.add_item(self.back_button)
@@ -116,7 +116,7 @@ class FarmView(discord.ui.View):
             )
 
         await interaction.response.edit_message(
-            content=f"You've harvested your farm and earned +**{xp_earned} XP**!\n\n{formatted_yield}",
+            content=f"You harvested your farm and earned a total of +**{xp_earned} XP**!\n\n{formatted_yield}",
             embed=self.create_farm_embed(self.discord_user.display_name),
             files=[await render_farm(self.farm)],
             view=self
@@ -183,11 +183,12 @@ class FarmView(discord.ui.View):
                     self.farm.discord_id,
                     f"plant.{self.selected_plant.key}"
                 )
+
                 await UserModel.increment_challenge_progress(
                     self.farm.discord_id, "plant", self.selected_plant.key)
 
                 await interaction.response.edit_message(
-                    content=f"You've planted a {self.selected_plant.name} {EMOJI_MAP[self.selected_plant.key]} on {location}!",
+                    content=f"You planted {self.selected_plant.name} {EMOJI_MAP[self.selected_plant.key]} on {location}!",
                     files=[await render_farm(self.farm)],
                     view=self,
                     embed=self.create_farm_embed(
@@ -207,9 +208,21 @@ class FarmView(discord.ui.View):
         return embed
 
     async def on_select_plot_letter(self, interaction):
+        for option in self.letter_dropdown.options:
+            if option.value == interaction.data["values"][0]:
+                option.default = True
+            else:
+                option.default = False
+
         await self.check_if_plot_specified(interaction, "letter")
 
     async def on_select_plot_number(self, interaction):
+        for option in self.letter_dropdown.options:
+            if option.value == interaction.data["values"][0]:
+                option.default = True
+            else:
+                option.default = False
+
         await self.check_if_plot_specified(interaction, "number")
 
     def create_back_button(self):

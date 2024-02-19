@@ -1,3 +1,4 @@
+from datetime import datetime
 import discord
 
 from models.user import UserModel
@@ -12,32 +13,33 @@ class ChallengesView(discord.ui.View):
             view=None
         )
 
+    def create_challenge_option_select(self):
+        selection_options = []
+        for i, option in enumerate(self.challenges.options):
+            selection_options.append(discord.SelectOption(
+                label=option.description,
+                value=str(i)
+            ))
+
+        select = discord.ui.Select(
+            placeholder="Select a challenge",
+            row=0,
+            options=selection_options
+        )
+
+        select.callback = self.on_challenge_option_selected
+        return select
+
     def __init__(self, profile: UserModel, timeout=120):
         super().__init__(timeout=timeout)
 
         self.profile = profile
         self.challenges = profile.challenges
 
-        self.daily_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary,
-            label="Daily",
-        )
-
-        options = []
-        for i, option in enumerate(self.challenges.options):
-            options.append(discord.SelectOption(
-                label=option.description,
-                value=str(i)
-            ))
-
-        self.challenge_option_select = discord.ui.Select(
-            placeholder="Select a challenge",
-            row=0,
-            options=options
-        )
-
         self.selected_option = None
-        self.challenge_option_select.callback = self.on_challenge_option_selected
+        self.challenge_option_select = self.create_challenge_option_select()
+        if len(self.challenges.options) > 0:
+            self.add_item(self.challenge_option_select)
 
         self.accept_button = discord.ui.Button(
             style=discord.ButtonStyle.primary,
@@ -45,11 +47,23 @@ class ChallengesView(discord.ui.View):
             row=4,
         )
 
-        self.accept_button.callback = self.on_accept_button_clicked
+        self.refresh_button = discord.ui.Button(
+            style=discord.ButtonStyle.danger,
+            label="Refresh",
+            row=4,
+        )
 
-        self.add_item(self.challenge_option_select)
+        self.accept_button.callback = self.on_accept_button_clicked
+        self.refresh_button.callback = self.on_refresh_button_clicked
+
+        can_refresh = (datetime.utcnow(
+        ) - self.profile.challenges.last_refreshed_at).total_seconds() > 86400
+        if can_refresh:
+            self.add_item(self.refresh_button)
 
     async def on_challenge_option_selected(self, interaction: discord.Interaction):
+        self.remove_item(self.refresh_button)
+
         self.selected_option = int(interaction.data["values"][0])
         self.add_item(self.accept_button)
 
@@ -70,4 +84,33 @@ class ChallengesView(discord.ui.View):
                 interaction.user.display_name, self.challenges),
             view=self
         )
+
         await interaction.response.defer()
+
+    async def on_refresh_button_clicked(self, interaction: discord.Interaction):
+        try:
+            new_user = await UserModel.refresh_challenges(
+                self.profile.discord_id, self.profile.stats.get("xp", 0),
+                self.profile.challenges.last_refreshed_at
+            )
+
+            self.profile = new_user
+            self.challenges = new_user.challenges
+
+            self.clear_items()
+            if len(self.challenges.options) > 0:
+                self.challenge_option_select = self.create_challenge_option_select()
+                self.add_item(self.challenge_option_select)
+
+            await interaction.message.edit(
+                embed=create_embed_for_challenges(
+                    interaction.user.display_name, self.challenges),
+                view=self
+            )
+
+            await interaction.response.defer()
+        except Exception as e:
+            await interaction.response.edit_message(
+                content=str(e),
+                view=self
+            )

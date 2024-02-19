@@ -1,13 +1,15 @@
 from datetime import datetime
 from typing import Any, Dict, Optional
+
 from bson import ObjectId
 from pydantic import BaseModel, Field
 from pymongo import ReturnDocument
+
+from db.database import Database
 from models.challenges import ChallengesModel
 from models.pyobjectid import PyObjectId
-from db.database import Database
+from models.yieldmodel import YieldModel
 from utils.level_calculator import level_based_on_xp
-
 
 COLLECTION_NAME = "users"
 
@@ -46,8 +48,26 @@ class UserModel(BaseModel):
         return cls(**doc) if doc else None
 
     @classmethod
-    async def give_items(cls, discord_id, items, cost=0, stats={}):
+    async def give_items(
+        cls,
+        discord_id,
+        items: Dict[str, YieldModel],
+        cost=0,
+        stats: Dict[str, int | float | Any] = {}
+    ):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        inc_inventory = {}
+        for item, yields in items.items():
+            inc_inventory[f"inventory.{item}.amount"] = yields.amount
+
+        inc_stats = {}
+        for stat, amount in stats.items():
+            if isinstance(amount, YieldModel):
+                inc_stats = {f"stats.{stat}.{key}": value for key,
+                             value in amount.model_dump().items()}
+            else:
+                inc_stats[f"stats.{stat}"] = amount
+
         result = await collection.find_one_and_update(
             {
                 "discord_id": str(discord_id),
@@ -56,14 +76,8 @@ class UserModel(BaseModel):
             {
                 "$inc": {
                     "balance": -cost,
-                    **{
-                        f"inventory.{item}.amount": amount
-                        for item, amount in items.items()
-                    },
-                    **{
-                        f"stats.{stat}": amount
-                        for stat, amount in stats.items()
-                    }
+                    **inc_inventory,
+                    **inc_stats
                 },
             },
             return_document=ReturnDocument.AFTER
@@ -150,6 +164,34 @@ class UserModel(BaseModel):
             {
                 "$set": {
                     f"challenges.options.{challenge_index}.accepted": True
+                },
+            },
+            return_document=ReturnDocument.AFTER
+        )
+
+        return cls(**result) if result else None
+
+    @classmethod
+    async def refresh_challenges(
+            cls,
+            discord_id: str,
+            current_xp: int,
+            last_refreshed_at: datetime):
+        current_time = datetime.utcnow()
+
+        if (current_time - last_refreshed_at).total_seconds() < 86400:
+            raise ValueError("You can only refresh challenges once per day.")
+
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        challenges = await ChallengesModel.generate(level_based_on_xp(current_xp) + 1)
+
+        result = await collection.find_one_and_update(
+            {
+                "discord_id": str(discord_id),
+            },
+            {
+                "$set": {
+                    "challenges": challenges.model_dump()
                 },
             },
             return_document=ReturnDocument.AFTER
