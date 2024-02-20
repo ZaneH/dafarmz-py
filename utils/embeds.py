@@ -2,9 +2,38 @@ import discord
 
 from db.shop_data import ShopData
 from models.challenges import ChallengesModel
+from models.farm import FarmModel
+from models.user import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
+from utils.inventory import get_amount_in_inventory
 from utils.progress_bar import construct_normal_progrss_bar
+
+
+def create_farm_embed(farm_owner_name: str):
+    embed = discord.Embed(
+        title=f"{farm_owner_name}'s Farm",
+        color=discord.Color.embed_background()
+    )
+
+    embed.set_image(url="attachment://farm.png")
+    return embed
+
+
+def create_explore_embed(profile: UserModel):
+    embed = discord.Embed(
+        title=f"Go Exploring",
+        color=discord.Color.embed_background()
+    )
+
+    embed.add_field(
+        name="Available Robots",
+        value=f"{EMOJI_MAP['ui:reply']} {get_amount_in_inventory(profile, 'item:robot')}",
+        inline=False
+    )
+
+    embed.set_image(url="attachment://farm.png")
+    return embed
 
 
 def goal_completion_percentage(progress, goal_amount):

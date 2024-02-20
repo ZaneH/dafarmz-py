@@ -3,13 +3,16 @@ import logging
 import discord
 from discord.ext import commands
 from db.shop_data import ShopData
+from discord import SlashCommandGroup
 
 from images.render import render_farm
 from models.farm import FarmModel
 from models.user import UserModel
+from utils.embeds import create_explore_embed, create_farm_embed
 from utils.emoji_map import EMOJI_MAP
 from utils.users import require_user
 from views.choose_seed_view import ChooseSeedView
+from views.farm_explore_view import FarmExploreView
 from views.farm_view import FarmView
 
 logger = logging.getLogger(__name__)
@@ -19,21 +22,22 @@ class Farm(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def create_farm_embed(self, ctx: discord.context.ApplicationContext, farm: FarmModel):
-        embed = discord.Embed(
-            title=f"{ctx.author.display_name}'s Farm",
-            color=discord.Color.embed_background()
-        )
-
-        embed.set_image(url="attachment://farm.png")
-        return embed
+    plot = SlashCommandGroup("plot", description="Manage your farm")
 
     async def start_farm_view(
             self, ctx: discord.context.ApplicationContext, farm: FarmModel):
         farm_view = FarmView(farm, ctx.author)
-        await ctx.respond(embed=self.create_farm_embed(ctx, farm),
+        await ctx.respond(embed=create_farm_embed(ctx.author.display_name),
                           view=farm_view,
                           files=[await render_farm(farm)])
+
+    async def start_explore_view(
+            self, ctx: discord.context.ApplicationContext, profile: UserModel):
+        explore_view = FarmExploreView(profile)
+        await ctx.respond(
+            embed=create_explore_embed(profile),
+            view=explore_view
+        )
 
     @commands.slash_command(name="farm", description="View your farm")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -44,14 +48,23 @@ class Farm(commands.Cog):
 
         await self.start_farm_view(ctx, farm)
 
-    @commands.slash_command(name="plot", description="View your farm")
+    @plot.command(name="view", description="View your farm")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def farm(self, ctx: discord.context.ApplicationContext):
+    async def plot_view(self, ctx: discord.context.ApplicationContext):
         farm = await FarmModel.find_by_discord_id(ctx.author.id)
         if not await require_user(ctx, farm):
             return
 
         await self.start_farm_view(ctx, farm)
+
+    @plot.command(name="explore", description="Look for new plots to expand your farm")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def plot_explore(self, ctx: discord.context.ApplicationContext):
+        user = await UserModel.find_by_discord_id(ctx.author.id)
+        if not await require_user(ctx, user):
+            return
+
+        await self.start_explore_view(ctx, user)
 
     @commands.slash_command(name="harvest", description="Harvest your farm")
     @commands.cooldown(1, 10, commands.BucketType.user)

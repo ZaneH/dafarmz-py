@@ -5,6 +5,7 @@ from db.shop_data import ShopData
 from images.render import render_farm
 from models.farm import FarmModel
 from models.user import UserModel
+from utils.embeds import create_farm_embed
 from utils.emoji_map import EMOJI_MAP
 
 
@@ -122,7 +123,7 @@ class FarmView(discord.ui.View):
 
         await interaction.response.edit_message(
             content=f"You harvested your farm and earned a total of +**{xp_earned} XP**!\n\n{formatted_yield}",
-            embed=self.create_farm_embed(self.discord_user.display_name),
+            embed=create_farm_embed(self.discord_user.display_name),
             files=[await render_farm(self.farm)],
             view=self
         )
@@ -203,21 +204,12 @@ class FarmView(discord.ui.View):
                     content=f"You planted {self.selected_plant.name} {EMOJI_MAP[self.selected_plant.key]} on {location}!",
                     files=[await render_farm(self.farm)],
                     view=self,
-                    embed=self.create_farm_embed(
+                    embed=create_farm_embed(
                         self.discord_user.display_name
                     ),
                 )
         else:
             await interaction.response.defer()
-
-    def create_farm_embed(self, farm_name):
-        embed = discord.Embed(
-            title=f"{farm_name}'s Farm",
-            color=discord.Color.embed_background()
-        )
-
-        embed.set_image(url="attachment://farm.png")
-        return embed
 
     async def on_select_plot_letter(self, interaction):
         for option in self.letter_dropdown.options:

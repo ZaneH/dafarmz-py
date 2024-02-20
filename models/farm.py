@@ -1,5 +1,6 @@
 from datetime import datetime
-import pdb
+import logging
+import random
 from typing import Any, Dict, Optional, Tuple
 
 from bson import ObjectId
@@ -9,8 +10,11 @@ from db.database import Database
 from models.pyobjectid import PyObjectId
 from models.shop import ShopModel
 from models.yieldmodel import YieldModel
+from utils.environments import Environment
 from utils.plant_state import can_harvest
 from utils.yields import get_yield_with_odds
+
+logger = logging.getLogger(__name__)
 
 COLLECTION_NAME = "farms"
 
@@ -55,8 +59,9 @@ class FarmModel(BaseModel):
     what is currently planted in the user's farm.
     """
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
-    discord_id: str
+    discord_id: Optional[str] = None
     plot: Dict[str, FarmPlotItem]
+    environment: Environment = Environment.basic_fertile_soil
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):
@@ -66,6 +71,30 @@ class FarmModel(BaseModel):
         })
 
         return cls(**doc) if doc else None
+
+    @classmethod
+    def generate_random(cls):
+        random_environment = random.choice(list(Environment))
+        random_plot = {}
+        for i in range(5):
+            if random.random() > 0.5:
+                random_plot[f"A{i}"] = FarmPlotItem(
+                    key="plant:apple",
+                    data=BasePlotItemData(
+                        yields_remaining=5,
+                        last_harvested_at=datetime.utcnow(),
+                        yields={
+                            "plant:apple": YieldModel(amount=1)
+                        },
+                        grow_time_hr=2
+                    )
+                )
+
+        return cls(
+            discord_id=None,
+            plot=random_plot,
+            environment=random_environment
+        )
 
     def harvest(self) -> Tuple[Dict[str, YieldModel], int]:
         """
@@ -155,6 +184,13 @@ class FarmModel(BaseModel):
         return True
 
     async def save_plot(self):
+        if (self.discord_id is None):
+            logger.warning(
+                "Attempted to save plot without a discord_id. This is likely a bug."
+            )
+
+            return
+
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         await collection.update_one(
             {"_id": self.id},
