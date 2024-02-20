@@ -54,9 +54,9 @@ def create_embed_for_challenges(name: str, challenges: ChallengesModel):
                             action, {}
                         ).get(item, 0)
 
-                        percentage = goal_completion_percentage(
+                        percentage = min(100, goal_completion_percentage(
                             current_progress, goal_amount
-                        )
+                        ))
 
                         progress_bar = construct_normal_progrss_bar(
                             percentage, 5

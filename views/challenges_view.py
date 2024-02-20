@@ -1,9 +1,11 @@
 from datetime import datetime
 import discord
+from db.shop_data import ShopData
 
 from models.user import UserModel
 from utils.challenges import is_challenge_completed
 from utils.embeds import create_embed_for_challenges
+from utils.emoji_map import EMOJI_MAP
 
 
 class ChallengesView(discord.ui.View):
@@ -15,7 +17,6 @@ class ChallengesView(discord.ui.View):
     async def on_timeout(self) -> None:
         self.clear_items()
         await self.message.edit(
-            content="",
             view=None
         )
 
@@ -144,7 +145,7 @@ class ChallengesView(discord.ui.View):
 
     async def on_claim_button_clicked(self, interaction: discord.Interaction):
         try:
-            new_user = await self.profile.claim_challenge_rewards(
+            (new_user, rewards) = await self.profile.claim_challenge_rewards(
                 self.selected_option
             )
 
@@ -157,7 +158,19 @@ class ChallengesView(discord.ui.View):
                 self.challenge_option_select = self.create_challenge_option_select()
                 self.add_item(self.challenge_option_select)
 
+            all_shop = ShopData.all()
+            rewards_text = "You have claimed:\n"
+            if rewards:
+                for reward_key, yields in rewards.items():
+                    item_name = next(
+                        (item.name for item in all_shop if item.key ==
+                         reward_key), reward_key
+                    )
+
+                    rewards_text += f"{EMOJI_MAP.get(reward_key, '')} {yields.amount} {item_name}\n"
+
             await interaction.message.edit(
+                content=rewards_text,
                 embed=create_embed_for_challenges(
                     interaction.user.display_name,
                     self.challenges

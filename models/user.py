@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from bson import ObjectId
 from pydantic import BaseModel, Field
@@ -242,7 +242,7 @@ class UserModel(BaseModel):
         updated_user = await collection.find_one({"discord_id": str(discord_id)})
         return cls(**updated_user) if updated_user else None
 
-    async def claim_challenge_rewards(self, challenge_index: int) -> Optional["UserModel"]:
+    async def claim_challenge_rewards(self, challenge_index: int) -> Tuple["UserModel", Dict[str, YieldModel]]:
         """
         Use .give_items() to claim the rewards for a challenge.
         Remove the challenge from the user's challenges.
@@ -277,14 +277,14 @@ class UserModel(BaseModel):
                 break
 
         # Filter out the XP and coins from the rewards to give.
-        rewards_to_give = {
+        filtered_rewards = {
             key: reward for key, reward in rewards_to_give.items()
             if key not in ["item:xp", "item:coin"]
         }
 
         new_user = await UserModel.give_items(
             self.discord_id,
-            rewards_to_give,
+            filtered_rewards,
             coins_earned,
             stats={
                 # Increment the user's XP
@@ -318,7 +318,7 @@ class UserModel(BaseModel):
         logger.debug(
             f"User {self.discord_id} claimed challenge rewards: {rewards}")
 
-        return new_user
+        return (new_user, rewards_to_give)
 
     async def save(self):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
