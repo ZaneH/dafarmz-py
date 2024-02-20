@@ -1,4 +1,5 @@
 from datetime import datetime
+import pdb
 from typing import Any, Dict, Optional, Tuple
 
 from bson import ObjectId
@@ -9,6 +10,7 @@ from models.pyobjectid import PyObjectId
 from models.shop import ShopModel
 from models.yieldmodel import YieldModel
 from utils.plant_state import can_harvest
+from utils.yields import get_yield_with_odds
 
 COLLECTION_NAME = "farms"
 
@@ -21,7 +23,12 @@ class BasePlotItemData(BaseModel):
     yields_remaining: Optional[int] = None
     last_harvested_at: Optional[datetime] = None
     yields: Dict[str, YieldModel] = {}
+    death_yields: Optional[Dict[str, YieldModel]] = {}
     grow_time_hr: Optional[float] = None
+
+    class Config:
+        arbitrary_types_allowed = True
+        from_attributes = True
 
 
 class FarmPlotItem(BaseModel):
@@ -67,7 +74,7 @@ class FarmModel(BaseModel):
 
         :return: A tuple containing the yields and xp earned from the harvest.
         """
-        harvest_yield = {}
+        harvest_yield: Dict[str, YieldModel] = {}
         dead_plot_items = []
         xp_earned = 0
 
@@ -90,9 +97,11 @@ class FarmModel(BaseModel):
                         plot_item.data, "yields", {})
                     for k, v in yields.items():
                         if k in harvest_yield:
-                            harvest_yield[k] += v
+                            harvest_yield[k].amount += get_yield_with_odds(v)
                         else:
-                            harvest_yield[k] = v
+                            amount = get_yield_with_odds(v)
+                            if amount > 0:
+                                harvest_yield[k] = YieldModel(amount=amount)
 
                 # Mark plot item as dead if no yields remaining
                 if plot_item.data.yields_remaining <= 0:
@@ -100,8 +109,21 @@ class FarmModel(BaseModel):
 
         # Remove dead plot items (no yields remaining)
         for plot_item in dead_plot_items:
+            # Check for death_yields and add them to the harvest_yield
+            if self.plot[plot_item].data.death_yields:
+                for k, v in self.plot[plot_item].data.death_yields.items():
+                    # Key has already been added, just increment the amount
+                    if k in harvest_yield:
+                        harvest_yield[k].amount += get_yield_with_odds(v)
+                    else:
+                        amount = get_yield_with_odds(v)
+                        if amount > 0:
+                            harvest_yield[k] = YieldModel(amount=amount)
+
+            # Remove the plot item from the plot
             del self.plot[plot_item]
 
+        print(harvest_yield)
         return (harvest_yield, xp_earned)
 
     def plant(self, location: str, item: ShopModel):
@@ -114,6 +136,7 @@ class FarmModel(BaseModel):
             return False
 
         yields = item.yields
+        death_yields = item.death_yields
         yields_remaining = item.total_yields
         grow_time_hr = item.grow_time_hr
 
@@ -124,6 +147,7 @@ class FarmModel(BaseModel):
                 yields_remaining=yields_remaining,
                 last_harvested_at=datetime.utcnow(),
                 yields=yields,
+                death_yields=death_yields,
                 grow_time_hr=grow_time_hr
             )
         )

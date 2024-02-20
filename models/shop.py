@@ -21,7 +21,10 @@ class ShopModel(BaseModel):
     grow_time_hr: float = 1  # The time it takes to grow per yield
     resell_price: int = 0  # The price to resell the item
     yields: Dict[str, YieldModel] = {}  # The yields of the item
+    # The yields of the item when it dies
+    death_yields: Dict[str, YieldModel] = {}
     total_yields: int = 0  # The amount of yields the item can produce
+    level_required: int = 0  # The level required to see this item in the shop
 
     @classmethod
     async def find_all(cls):

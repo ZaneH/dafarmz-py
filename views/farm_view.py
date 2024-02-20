@@ -91,9 +91,15 @@ class FarmView(discord.ui.View):
 
     async def on_harvest_clicked(self, interaction: discord.Interaction):
         (harvest_yield, xp_earned) = self.farm.harvest()
+        if not any(harvest_yield.values()):
+            return await interaction.response.edit_message(
+                content="You don't have anything to harvest!",
+                view=self
+            )
+
         await self.farm.save_plot()
 
-        await UserModel.give_items(self.discord_user.id, harvest_yield, 0, {
+        await UserModel.give_items(self.discord_user.id, harvest_yield, 0, stats={
             "xp": xp_earned,
             "harvest.xp": xp_earned,
             "harvest.count": 1,
@@ -113,12 +119,6 @@ class FarmView(discord.ui.View):
         self.back_button = self.create_back_button()
         self.add_item(self.back_button)
         self.remove_stage_one_buttons()
-
-        if not any(harvest_yield.values()):
-            return await interaction.response.edit_message(
-                content="You don't have anything to harvest!",
-                view=self
-            )
 
         await interaction.response.edit_message(
             content=f"You harvested your farm and earned a total of +**{xp_earned} XP**!\n\n{formatted_yield}",
@@ -184,10 +184,17 @@ class FarmView(discord.ui.View):
                 self.selected_plant
             ):
                 await self.farm.save_plot()
-                await UserModel.inc_stat(
+                await UserModel.inc_stats(
                     self.farm.discord_id,
-                    f"plant.{self.selected_plant.key}"
+                    {
+                        "xp": 10,  # TODO: Make this dynamic?
+                        "plant.count": 1,
+                        f"plant.{self.selected_plant.key}": 1,
+                    }
                 )
+
+                self.selected_letter = None
+                self.selected_number = None
 
                 await UserModel.increment_challenge_progress(
                     self.farm.discord_id, "plant", self.selected_plant.key)

@@ -8,6 +8,7 @@ from db.shop_data import ShopData
 from models.shop import ShopModel
 from models.user import UserModel
 from utils.currency import format_currency
+from utils.embeds import create_shop_embed
 from utils.emoji_map import EMOJI_MAP
 from utils.users import require_user
 from views.sale_view import SaleView
@@ -52,15 +53,15 @@ class Shop(commands.Cog):
         if len(shop_data) == 0:
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
-        embed = discord.Embed(title="Jason's Shop",
-                              color=discord.Color.blurple())
-        embed.set_thumbnail(url="https://i.imgur.com/3CQRKGY.png")
-        for item in shop_data:
-            embed.add_field(
-                name=f"{EMOJI_MAP.get(item.key, '')} {item.name}",
-                value=f"{EMOJI_MAP['ui:reply']} {format_currency(item.cost)}",
-                inline=False
-            )
+        user = await UserModel.find_by_discord_id(ctx.author.id)
+        if not await require_user(ctx, user):
+            return
+
+        # Filter shop data based on user's level
+        shop_data = [
+            item for item in shop_data if item.level_required <= user.current_level]
+
+        embed = create_shop_embed(shop_data)
 
         await ctx.respond(embed=embed, ephemeral=True)
 
@@ -193,6 +194,7 @@ class Shop(commands.Cog):
         all_items = await ShopModel.find_all()
         buyable_items = await ShopModel.find_buyable()
 
+        # Populate shop data
         ShopData.get_instance().all_shop_data = all_items
         ShopData.get_instance().buyable_data = buyable_items
 

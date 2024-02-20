@@ -23,12 +23,18 @@ class ChallengesModel(BaseModel):
     Represents the challenges that a user can complete.
     """
     last_refreshed_at: datetime = Field(default_factory=datetime.utcnow)
+    max_active: int = 1
     options: List[ChallengeOptionModel] = []
 
     @classmethod
-    async def generate(cls, for_level: int):
+    async def generate(cls, for_level: int, amount=3):
         """
         Generate random challenges for a user based on their level.
+        Can be used to fetch one or more challenges.
+
+        :param for_level: The level of the user as int.
+        :param amount: The amount of challenges to fetch.
+        :return: A new instance of `ChallengesModel`.
         """
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         cursor = collection.find({
@@ -40,8 +46,8 @@ class ChallengesModel(BaseModel):
         # Shuffle the challenges
         random.shuffle(challenges)
 
-        # Limit to 3 challenges
-        challenges = challenges[:3]
+        # Limit to `amount` challenges
+        challenges = challenges[:amount]
 
         return cls(
             last_refreshed_at=datetime.utcnow(),

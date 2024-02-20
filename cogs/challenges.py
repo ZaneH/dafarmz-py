@@ -1,11 +1,7 @@
 import discord
 from discord.ext import commands
-from db.database import Database
-from db.shop_data import ShopData
-from models.challenges import ChallengesModel
 from models.user import UserModel
 from utils.embeds import create_embed_for_challenges
-from utils.emoji_map import EMOJI_MAP
 from utils.users import require_user
 from views.challenges_view import ChallengesView
 

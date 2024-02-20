@@ -2,6 +2,7 @@ from datetime import datetime
 import discord
 
 from models.user import UserModel
+from utils.challenges import is_challenge_completed
 from utils.embeds import create_embed_for_challenges
 
 
@@ -52,6 +53,12 @@ class ChallengesView(discord.ui.View):
             row=4,
         )
 
+        self.claim_button = discord.ui.Button(
+            style=discord.ButtonStyle.success,
+            label="Claim",
+            row=4,
+        )
+
         self.refresh_button = discord.ui.Button(
             style=discord.ButtonStyle.danger,
             label="Refresh",
@@ -59,6 +66,7 @@ class ChallengesView(discord.ui.View):
         )
 
         self.accept_button.callback = self.on_accept_button_clicked
+        self.claim_button.callback = self.on_claim_button_clicked
         self.refresh_button.callback = self.on_refresh_button_clicked
 
         can_refresh = (datetime.utcnow(
@@ -68,9 +76,21 @@ class ChallengesView(discord.ui.View):
 
     async def on_challenge_option_selected(self, interaction: discord.Interaction):
         self.remove_item(self.refresh_button)
+        self.remove_item(self.accept_button)
+        self.remove_item(self.claim_button)
 
         self.selected_option = int(interaction.data["values"][0])
+
+        is_accepted = self.challenges.options[self.selected_option].accepted
+        self.accept_button.disabled = is_accepted
         self.add_item(self.accept_button)
+
+        # Check if the challenge is completed
+        is_completed = is_challenge_completed(
+            self.challenges.options[self.selected_option])
+
+        self.claim_button.disabled = not is_completed
+        self.add_item(self.claim_button)
 
         # set default=True for the selected option
         for option in self.challenge_option_select.options:
@@ -80,23 +100,87 @@ class ChallengesView(discord.ui.View):
         await interaction.response.defer()
 
     async def on_accept_button_clicked(self, interaction: discord.Interaction):
-        new_user = await UserModel.accept_challenge(self.profile.discord_id, self.selected_option)
-        self.profile = new_user
-        self.challenges = new_user.challenges
-        self.clear_items()
-        await interaction.message.edit(
-            embed=create_embed_for_challenges(
-                interaction.user.display_name, self.challenges),
-            view=self
-        )
+        try:
+            active_challenges = sum(
+                option.accepted for option in self.challenges.options
+            )
+            max_active = self.challenges.max_active
 
-        await interaction.response.defer()
+            if active_challenges >= max_active:
+                raise ValueError(
+                    "You have reached the maximum amount of active challenges.")
+
+            new_user = await UserModel.accept_challenge(
+                self.profile.discord_id,
+                self.selected_option,
+            )
+
+            if new_user:
+                self.profile = new_user
+                self.challenges = new_user.challenges
+                self.clear_items()
+
+                if len(self.challenges.options) > 0:
+                    self.add_item(self.challenge_option_select)
+            else:
+                raise ValueError(
+                    "There must have been an issue accepting the challenge.\nPlease try again or report this in the Discord.")
+
+            await interaction.message.edit(
+                embed=create_embed_for_challenges(
+                    interaction.user.display_name, self.challenges
+                ),
+                view=self
+            )
+
+            await interaction.response.defer()
+        except Exception as e:
+            await interaction.message.edit(
+                content=str(e),
+                view=self
+            )
+
+            await interaction.response.defer()
+
+    async def on_claim_button_clicked(self, interaction: discord.Interaction):
+        try:
+            new_user = await self.profile.claim_challenge_rewards(
+                self.selected_option
+            )
+
+            if new_user:
+                self.profile = new_user
+                self.challenges = new_user.challenges
+
+            self.clear_items()
+            if len(self.challenges.options) > 0:
+                self.challenge_option_select = self.create_challenge_option_select()
+                self.add_item(self.challenge_option_select)
+
+            await interaction.message.edit(
+                embed=create_embed_for_challenges(
+                    interaction.user.display_name,
+                    self.challenges
+                ),
+                view=self
+            )
+
+            await interaction.response.defer()
+        except Exception as e:
+            await interaction.message.edit(
+                content=str(e),
+                view=self
+            )
+
+            await interaction.response.defer()
 
     async def on_refresh_button_clicked(self, interaction: discord.Interaction):
         try:
             new_user = await UserModel.refresh_challenges(
-                self.profile.discord_id, self.profile.stats.get("xp", 0),
-                self.profile.challenges.last_refreshed_at
+                self.profile.discord_id,
+                self.profile.stats.get("xp", 0),
+                self.profile.challenges.last_refreshed_at,
+                self.profile.challenges.max_active
             )
 
             self.profile = new_user
@@ -115,7 +199,9 @@ class ChallengesView(discord.ui.View):
 
             await interaction.response.defer()
         except Exception as e:
-            await interaction.response.edit_message(
+            await interaction.message.edit(
                 content=str(e),
                 view=self
             )
+
+            await interaction.response.defer()

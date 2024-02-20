@@ -9,6 +9,7 @@ class ProgressBarEmoji:
     PHF = '<:PHF:1207983208549847100>'
     PEE = '<:PEE:1207983206423470090>'
     PEM = '<:PEM:1207983204040974377>'
+    PFE = '<:PFE:1208958387497345115>'
 
 
 def construct_xp_progress_bar(current_xp, total_segments=10):
@@ -59,8 +60,8 @@ def construct_xp_progress_bar(current_xp, total_segments=10):
     empty_segments = total_segments - filled_segments
     progress_bar += ProgressBarEmoji.PEM * empty_segments
 
-    # End with the closed and empty end piece
-    progress_bar += ProgressBarEmoji.PEE
+    # End with the PFE or PEE piece
+    progress_bar += ProgressBarEmoji.PFE if current_xp >= xp_for_next_level else ProgressBarEmoji.PEE
 
     return progress_bar
 
@@ -91,7 +92,7 @@ def construct_normal_progrss_bar(percent: float, total_segments=10):
     empty_segments = total_segments - filled_segments
     progress_bar += ProgressBarEmoji.PEM * empty_segments
 
-    # End with the closed and empty end piece
-    progress_bar += ProgressBarEmoji.PEE
+    # End with the PFE or PEE piece
+    progress_bar += ProgressBarEmoji.PFE if percent >= 1 else ProgressBarEmoji.PEE
 
     return progress_bar

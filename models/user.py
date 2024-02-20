@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -10,6 +11,8 @@ from models.challenges import ChallengesModel
 from models.pyobjectid import PyObjectId
 from models.yieldmodel import YieldModel
 from utils.level_calculator import level_based_on_xp
+
+logger = logging.getLogger(__name__)
 
 COLLECTION_NAME = "users"
 
@@ -61,12 +64,16 @@ class UserModel(BaseModel):
             inc_inventory[f"inventory.{item}.amount"] = yields.amount
 
         inc_stats = {}
-        for stat, amount in stats.items():
-            if isinstance(amount, YieldModel):
-                inc_stats = {f"stats.{stat}.{key}": value for key,
-                             value in amount.model_dump().items()}
+        for stat, yield_ in stats.items():
+            if isinstance(yield_, YieldModel):
+                # inc_stats = {f"stats.{stat}.{key}": value for key,
+                #              value in amount.model_dump().items()}
+                inc_stats = {}
+                for key, value in yield_.model_dump().items():
+                    if key == "amount":
+                        inc_stats[f"stats.{stat}.{key}"] = value
             else:
-                inc_stats[f"stats.{stat}"] = amount
+                inc_stats[f"stats.{stat}"] = yield_
 
         result = await collection.find_one_and_update(
             {
@@ -138,7 +145,7 @@ class UserModel(BaseModel):
         return result.modified_count > 0
 
     @classmethod
-    async def inc_stats(cls, discord_id, stats):
+    async def inc_stats(cls, discord_id, stats: Dict[str, int | float | Any]):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         result = await collection.update_one(
             {
@@ -160,6 +167,7 @@ class UserModel(BaseModel):
         result = await collection.find_one_and_update(
             {
                 "discord_id": str(discord_id),
+                f"challenges.options.{challenge_index}": {"$exists": True},
             },
             {
                 "$set": {
@@ -176,7 +184,9 @@ class UserModel(BaseModel):
             cls,
             discord_id: str,
             current_xp: int,
-            last_refreshed_at: datetime):
+            last_refreshed_at: datetime,
+            max_active=1
+    ):
         current_time = datetime.utcnow()
 
         if (current_time - last_refreshed_at).total_seconds() < 86400:
@@ -184,6 +194,7 @@ class UserModel(BaseModel):
 
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         challenges = await ChallengesModel.generate(level_based_on_xp(current_xp) + 1)
+        challenges.max_active = max_active
 
         result = await collection.find_one_and_update(
             {
@@ -201,6 +212,15 @@ class UserModel(BaseModel):
 
     @classmethod
     async def increment_challenge_progress(cls, discord_id, action, item, increment=1):
+        """
+        Increment the progress of a challenge for a user.
+
+        :param discord_id: The discord ID of the user as int.
+        :param action: The action to increment as str. (e.g. "harvest", "plant", "buy")
+        :param item: The item key to increment as str.
+        :param increment: The amount to increment as int.
+        :return: A new instance of `UserModel` if the user was found, else None.
+        """
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         user = await collection.find_one({"discord_id": str(discord_id)})
 
@@ -221,6 +241,84 @@ class UserModel(BaseModel):
         # Return the updated user document
         updated_user = await collection.find_one({"discord_id": str(discord_id)})
         return cls(**updated_user) if updated_user else None
+
+    async def claim_challenge_rewards(self, challenge_index: int) -> Optional["UserModel"]:
+        """
+        Use .give_items() to claim the rewards for a challenge.
+        Remove the challenge from the user's challenges.
+
+        :param challenge_index: The index of the challenge to claim as int.
+        :return: A new instance of `UserModel` if the user was found, else None.
+        """
+        if not self.challenges or challenge_index >= len(self.challenges.options):
+            logger.warning(
+                f"User {self.discord_id} tried to claim a challenge that doesn't exist: {challenge_index}"
+            )
+            raise ValueError("Invalid challenge index. Something went wrong.")
+
+        # Convert rewards to YieldModel
+        rewards = self.challenges.options[challenge_index].rewards
+        rewards_to_give = {key: YieldModel(
+            key=key, amount=amount
+        ) for key, amount in rewards.items()}
+
+        # XP is a stat, not an item. We need to handle it separately.
+        xp_earned = 0
+        for key, reward in rewards_to_give.items():
+            if key == "item:xp":
+                xp_earned = reward.amount
+                break
+
+        # Coins are also handled separately.
+        coins_earned = 0
+        for key, reward in rewards_to_give.items():
+            if key == "item:coin":
+                coins_earned = reward.amount
+                break
+
+        # Filter out the XP and coins from the rewards to give.
+        rewards_to_give = {
+            key: reward for key, reward in rewards_to_give.items()
+            if key not in ["item:xp", "item:coin"]
+        }
+
+        new_user = await UserModel.give_items(
+            self.discord_id,
+            rewards_to_give,
+            coins_earned,
+            stats={
+                # Increment the user's XP
+                "xp": xp_earned,
+                "challenge.xp": xp_earned,
+                "challenge.count": 1,
+                **{
+                    f"challenge.{item_key}": amount
+                    for item_key, amount in rewards.items()
+                }
+            }
+        )
+
+        if new_user:
+            new_user.challenges = self.challenges
+            new_user.challenges.options.pop(challenge_index)
+            new_challenge = await ChallengesModel.generate(
+                level_based_on_xp(new_user.stats.get("xp", 0)) + 1, amount=1
+            )
+            new_user.challenges.options.append(new_challenge.options[0])
+            new_challenge.max_active = self.challenges.max_active
+
+            await new_user.save()
+        else:
+            logger.warning(
+                f"User {self.discord_id} tried to claim challenge rewards but the user wasn't returned."
+            )
+            raise ValueError(
+                "There was an issue claiming the challenge rewards.")
+
+        logger.debug(
+            f"User {self.discord_id} claimed challenge rewards: {rewards}")
+
+        return new_user
 
     async def save(self):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
