@@ -4,73 +4,28 @@ import logging
 logger = logging.getLogger(__name__)
 
 IMAGE_YIELD_MAP = {
-    "plant:apple": [
-        "sapling.png",
-        "apple-0.png",
-        "apple-1.png",
-        "apple-2.png",
+    "plant:crystalline_cabbage": [
+        "crystalline-cabbage-0.png",
+        "crystalline-cabbage-1.png",
+        "crystalline-cabbage-2.png",
+        "crystalline-cabbage-3.png",
+        "crystalline-cabbage-4.png",
     ],
-    "plant:blueberry": [
-        "sapling.png",
-        "blueberry-0.png",
-        "blueberry-1.png",
-        "blueberry-2.png",
+    "plant:frost_lettuce": [
+        "frost-lettuce-0.png",
+        "frost-lettuce-1.png",
+        "frost-lettuce-2.png",
+        "frost-lettuce-3.png",
+        "frost-lettuce-4.png",
+        "frost-lettuce-5.png",
     ],
-    "plant:carrot": [
-        "carrot-0.png",
-        "carrot-1.png",
-        "carrot-2.png",
-        "carrot-3.png",
-    ],
-    "plant:corn": [
-        "corn-0.png",
-        "corn-1.png",
-        "corn-2.png",
-        "corn-3.png",
-        "corn-4.png",
-    ],
-    "plant:orange": [
-        "sapling.png",
-        "orange-0.png",
-        "orange-1.png",
-        "orange-2.png",
-    ],
-    "plant:peach": [
-        "sapling.png",
-        "peach-0.png",
-        "peach-1.png",
-        "peach-2.png",
-    ],
-    "plant:pear": [
-        "sapling.png",
-        "pear-0.png",
-        "pear-1.png",
-        "pear-2.png",
-    ],
-    "plant:pickle": [
-        "pickle-0.png",
-        "pickle-1.png",
-        "pickle-2.png",
-        "pickle-3.png",
-    ],
-    "plant:pumpkin": [
-        "pumpkin-0.png",
-        "pumpkin-1.png",
-        "pumpkin-2.png",
-        "pumpkin-3.png",
-    ],
-    "plant:strawberry": [
-        "sapling.png",
-        "strawberry-0.png",
-        "strawberry-1.png",
-        "strawberry-2.png",
-    ],
-    "plant:starfruit": [
-        "starfruit-0.png",
-        "starfruit-1.png",
-        "starfruit-2.png",
-        "starfruit-3.png",
-    ],
+    "plant:polar_peppers": [
+        "polar-peppers-0.png",
+        "polar-peppers-1.png",
+        "polar-peppers-2.png",
+        "polar-peppers-3.png",
+        "polar-peppers-4.png",
+    ]
 }
 
 

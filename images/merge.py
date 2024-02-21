@@ -1,11 +1,13 @@
 import logging
 
 from PIL import Image
+from utils.environments import Environment
 
 from utils.plant_state import get_image_for_plot_item_state
 
-GRID_SIZE = 32
-PLOT_OFFSET = 29
+GRID_SIZE = 72
+PLOT_OFFSET_X = 15
+PLOT_OFFSET_Y = 21
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +16,8 @@ def place_object(base, object_image, grid_x, grid_y):
     object = Image.open(object_image).convert("RGBA")
     w = object.width
     h = object.height
-    x = grid_x * GRID_SIZE + PLOT_OFFSET - w // 2
-    y = grid_y * GRID_SIZE + PLOT_OFFSET - h // 2
+    x = grid_x * GRID_SIZE + PLOT_OFFSET_X - w // 2
+    y = grid_y * GRID_SIZE + PLOT_OFFSET_Y - h // 2
 
     additional_offset = {x: GRID_SIZE // 2, y: GRID_SIZE // 2}
     if h > GRID_SIZE:
@@ -29,17 +31,17 @@ def place_object(base, object_image, grid_x, grid_y):
     return base
 
 
-def generate_base_image():
-    bl1 = Image.open("./images/files/base-1.png").convert("RGBA")
-    bl2 = Image.open("./images/files/base-2.png").convert("RGBA")
-    base = Image.new("RGBA", bl1.size)
-    base.paste(bl1, (0, 0), bl1)
-    base.paste(bl2, (0, 0), bl2)
-    return base
+def generate_image(environment: Environment, plot_state):
+    """
+    Generate an image of the farm based on the environment and plot state.
 
-
-def generate_image(plot_state):
-    base_image = generate_base_image()
+    :param environment: The environment of the farm (e.g. basic_fertile_soil)
+    :param plot_state: The state of the farm plot
+    :return: The generated image
+    """
+    base_image = Image.open(
+        f"./images/files/new/plots/plot-{environment.value}-ui.png"
+    ).convert("RGBA")
 
     # plot_state is a dict (A1, A2, B5, etc.)
     for plot_id, state in plot_state.items():
@@ -61,7 +63,7 @@ def generate_image(plot_state):
             if item_image:
                 base_image = place_object(
                     base_image,
-                    f"./images/files/{item_image}",
+                    f"./images/files/new/crops/{item_image}",
                     ord(col) - 64,
                     int(row)
                 )

@@ -7,7 +7,7 @@ from models.farm import FarmModel
 
 
 async def render_farm(farm: FarmModel):
-    image = generate_image(farm.plot)
+    image = generate_image(farm.environment, farm.plot)
     with io.BytesIO() as image_binary:
         image.save(image_binary, "PNG")
         image_binary.seek(0)

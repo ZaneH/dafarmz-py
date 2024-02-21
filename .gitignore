@@ -1,4 +1,7 @@
 .env
 __pycache__/
 images/**/*.png
+images/**/*.psd
+images/**/*.webp
 .DS_Store
+marketing/

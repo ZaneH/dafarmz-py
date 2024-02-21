@@ -2,11 +2,11 @@ from enum import Enum
 
 
 class Environment(Enum):
-    basic_fertile_soil = "BASIC_FERTILE_SOIL"
-    grassland = "GRASSLAND"
-    co2_greenhouse = "CO2_GREENHOUSE"
-    cavernous_caves = "CAVERNOUS_CAVES"
-    radioactive_meteor_site = "RADIOACTIVE_METEOR_SITE"
-    rocky_rivers = "ROCKY_RIVERS"
-    arctic_wasteland = "ARCTIC_WASTELAND"
-    giant_jungle = "GIANT_JUNGLE"
+    BASIC_FERTILE_SOIL = "basic_fertile_soil"
+    GRASSLAND = "grassland"
+    CO2_GREENHOUSE = "co2_greenhouse"
+    CAVERNOUS_CAVES = "cavernous_caves"
+    RADIOACTIVE_METEOR_SITE = "radioactive_meteor_site"
+    ROCKY_RIVERS = "rocky_rivers"
+    ARCTIC_WASTELAND = "arctic_wasteland"
+    GIANT_JUNGLE = "giant_jungle"
