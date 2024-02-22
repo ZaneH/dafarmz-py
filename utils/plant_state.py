@@ -25,6 +25,13 @@ IMAGE_YIELD_MAP = {
         "polar-peppers-2.png",
         "polar-peppers-3.png",
         "polar-peppers-4.png",
+    ],
+    "plant:iceburg_lettuce": [
+        "iceburg-lettuce-0.png",
+        "iceburg-lettuce-1.png",
+        "iceburg-lettuce-2.png",
+        "iceburg-lettuce-3.png",
+        "iceburg-lettuce-4.png",
     ]
 }
 

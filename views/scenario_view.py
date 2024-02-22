@@ -24,6 +24,7 @@ class ScenarioView(discord.ui.View):
         self.profile = profile
         self.explore_button = None  # Go exploring
         self.select_button = None  # Select scenario
+        self.next_button = None  # Next scenario
         self.back_button = None  # Back
         self.interaction_helper = None
 
@@ -48,12 +49,21 @@ class ScenarioView(discord.ui.View):
             style=discord.ButtonStyle.primary, label="Select")
         self.select_button.callback = self.on_select_button_clicked
         self.add_item(self.select_button)
+        self.next_button = discord.ui.Button(
+            style=discord.ButtonStyle.secondary, label="Next")
+        self.next_button.callback = self.on_explore_button_clicked
+        self.add_item(self.next_button)
 
     def remove_stage_one_buttons(self):
         self.remove_item(self.explore_button)
 
     def remove_stage_two_buttons(self):
         self.remove_item(self.select_button)
+        self.remove_item(self.next_button)
+
+    def remove_scenario_buttons(self):
+        if self.interaction_helper:
+            self.interaction_helper.remove_buttons(self)
 
     def add_back_button(self):
         self.remove_item(self.back_button)
@@ -66,6 +76,10 @@ class ScenarioView(discord.ui.View):
         self.remove_item(self.back_button)
 
     async def on_explore_button_clicked(self, interaction: discord.Interaction):
+        self.remove_stage_two_buttons()
+        self.remove_back_button()
+        self.remove_scenario_buttons()
+
         current_xp = self.profile.stats.get("xp", 0)
         scenarios = await ScenarioModel.find_scenarios(current_xp)
 
@@ -85,6 +99,10 @@ class ScenarioView(discord.ui.View):
         )
 
     async def on_select_button_clicked(self, interaction: discord.Interaction):
+        """
+        The scenario has been selected and the user wants to interact with it.
+        Present the main scenario controls.
+        """
         self.remove_stage_two_buttons()
         self.remove_back_button()
 
@@ -92,10 +110,14 @@ class ScenarioView(discord.ui.View):
         self.interaction_helper.setup_buttons()
         self.interaction_helper.add_buttons(self)
         self.interaction_helper.on_cursor_change_callback = self.on_cursor_change
+        self.interaction_helper.on_exit_callback = self.on_exit_button_clicked
+        self.interaction_helper.on_next_callback = self.on_explore_button_clicked
+        self.interaction_helper.on_interact_callback = self.on_interact_button_clicked
 
         environment = self.selected_scenario.environment
         plot = self.selected_scenario.plot
         await interaction.response.edit_message(
+            content="",
             files=[await render_scenario(environment, plot, self.interaction_helper.cursor_position)],
             embed=create_scenario_embed(self.profile),
             view=self
@@ -110,6 +132,28 @@ class ScenarioView(discord.ui.View):
             view=self
         )
 
+    def on_interact_button_clicked(self, interaction: discord.Interaction):
+        pass
+
+    def get_plot_item(self):
+        if not self.interaction_helper:
+            return None
+
+        cursor_position = self.interaction_helper.cursor_position
+        plot = self.selected_scenario.plot
+        return plot.get(cursor_position)
+
+    async def on_exit_button_clicked(self, interaction: discord.Interaction):
+        self.add_stage_one_buttons()
+        self.remove_scenario_buttons()
+
+        await interaction.response.edit_message(
+            content="You left the scenario.",
+            embed=create_scenario_embed(self.profile),
+            files=[],
+            view=self
+        )
+
     async def on_back_button_clicked(self, interaction: discord.Interaction):
         self.remove_back_button()
         self.remove_stage_two_buttons()
@@ -119,6 +163,9 @@ class ScenarioView(discord.ui.View):
 
 
 class ScenarioInteractionHelper:
+    """
+    Helper class for handling scenario interactions.
+    """
     LETTERS = ["A", "B", "C", "D", "E"]
     NUMBERS = ["1", "2", "3", "4", "5"]
 
@@ -140,6 +187,10 @@ class ScenarioInteractionHelper:
         self.cursor_column = 2
 
         self.on_cursor_change_callback = None
+        self.on_interact_callback = None
+        self.on_exit_callback = None
+        self.on_eat_callback = None
+        self.on_next_callback = None
 
     def setup_buttons(self):
         self.up_left = discord.ui.Button(
@@ -189,16 +240,20 @@ class ScenarioInteractionHelper:
         self.next_button.callback = self.on_next_button_clicked
 
     async def on_exit_button_clicked(self, interaction: discord.Interaction):
-        pass
+        if self.on_exit_callback:
+            await self.on_exit_callback(interaction)
 
     async def on_eat_button_clicked(self, interaction: discord.Interaction):
-        pass
+        if self.on_eat_callback:
+            await self.on_eat_callback(interaction)
 
     async def on_next_button_clicked(self, interaction: discord.Interaction):
-        pass
+        if self.on_next_callback:
+            await self.on_next_callback(interaction)
 
     async def on_interact_button_clicked(self, interaction: discord.Interaction):
-        pass
+        if self.on_interact_callback:
+            await self.on_interact_callback(interaction)
 
     @property
     def cursor_position(self):
