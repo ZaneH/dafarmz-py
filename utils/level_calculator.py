@@ -9,11 +9,11 @@
 import math
 
 
-def xp_required_for_level(level, X=0.07, Y=2):
+def level_to_xp(level, X=0.07, Y=2):
     return math.floor((level / X) ** Y)
 
 
-def level_based_on_xp(current_xp, X=0.07, Y=2):
+def xp_to_level(current_xp, X=0.07, Y=2):
     """
     Calculate the level based on the current XP starting at level 1.
 
@@ -24,4 +24,4 @@ def level_based_on_xp(current_xp, X=0.07, Y=2):
 
 
 def next_level_xp(current_xp, X=0.07, Y=2):
-    return xp_required_for_level(level_based_on_xp(current_xp) + 1, X, Y)
+    return level_to_xp(xp_to_level(current_xp) + 1, X, Y)

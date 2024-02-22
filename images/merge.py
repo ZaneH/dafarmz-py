@@ -71,3 +71,21 @@ def generate_image(environment: Environment, plot_state):
             logger.error(f"Error placing object for {plot_id}: {e}")
 
     return base_image
+
+
+def apply_cursor(image, plot_id: str):
+    """
+    Apply a cursor to the image.
+
+    :param image: The image to apply the cursor to.
+    :param plot_id: Position of the cursor.
+    :return: The image with the cursor applied.
+    """
+    col, row = plot_id[0], plot_id[1:]
+
+    cursor_image = Image.open(
+        f"./images/files/new/ui/plot-cursor-box.png").convert("RGBA")
+    x = (ord(col) - 64) * GRID_SIZE + PLOT_OFFSET_X - 3
+    y = int(row) * GRID_SIZE + PLOT_OFFSET_Y - 3
+    image.paste(cursor_image, (x, y), cursor_image)
+    return image

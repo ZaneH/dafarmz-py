@@ -8,11 +8,11 @@ from discord import SlashCommandGroup
 from images.render import render_farm
 from models.farm import FarmModel
 from models.user import UserModel
-from utils.embeds import create_explore_embed, create_farm_embed
+from utils.embeds import create_scenario_embed, create_farm_embed
 from utils.emoji_map import EMOJI_MAP
 from utils.users import require_user
 from views.choose_seed_view import ChooseSeedView
-from views.farm_explore_view import FarmExploreView
+from views.scenario_view import ScenarioView
 from views.farm_view import FarmView
 
 logger = logging.getLogger(__name__)
@@ -33,9 +33,9 @@ class Farm(commands.Cog):
 
     async def start_explore_view(
             self, ctx: discord.context.ApplicationContext, profile: UserModel):
-        explore_view = FarmExploreView(profile)
+        explore_view = ScenarioView(profile)
         await ctx.respond(
-            embed=create_explore_embed(profile),
+            embed=create_scenario_embed(profile),
             view=explore_view
         )
 

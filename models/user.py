@@ -10,7 +10,7 @@ from db.database import Database
 from models.challenges import ChallengesModel
 from models.pyobjectid import PyObjectId
 from models.yieldmodel import YieldModel
-from utils.level_calculator import level_based_on_xp
+from utils.level_calculator import xp_to_level
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +193,7 @@ class UserModel(BaseModel):
             raise ValueError("You can only refresh challenges once per day.")
 
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
-        challenges = await ChallengesModel.generate(level_based_on_xp(current_xp) + 1)
+        challenges = await ChallengesModel.generate(xp_to_level(current_xp) + 1)
         challenges.max_active = max_active
 
         result = await collection.find_one_and_update(
@@ -302,7 +302,7 @@ class UserModel(BaseModel):
             new_user.challenges = self.challenges
             new_user.challenges.options.pop(challenge_index)
             new_challenge = await ChallengesModel.generate(
-                level_based_on_xp(new_user.stats.get("xp", 0)) + 1, amount=1
+                xp_to_level(new_user.stats.get("xp", 0)) + 1, amount=1
             )
             new_user.challenges.options.append(new_challenge.options[0])
             new_challenge.max_active = self.challenges.max_active
@@ -326,7 +326,7 @@ class UserModel(BaseModel):
 
     @property
     def current_level(self):
-        return level_based_on_xp(self.stats.get("xp", 0))
+        return xp_to_level(self.stats.get("xp", 0))
 
     class Config:
         arbitrary_types_allowed = True

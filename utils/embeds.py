@@ -20,7 +20,7 @@ def create_farm_embed(farm_owner_name: str):
     return embed
 
 
-def create_explore_embed(profile: UserModel):
+def create_scenario_embed(profile: UserModel):
     embed = discord.Embed(
         title=f"Go Exploring",
         color=discord.Color.embed_background()
@@ -32,7 +32,7 @@ def create_explore_embed(profile: UserModel):
         inline=False
     )
 
-    embed.set_image(url="attachment://farm.png")
+    embed.set_image(url="attachment://scenario.png")
     return embed
 
 

@@ -1,5 +1,5 @@
 import math
-from .level_calculator import next_level_xp, xp_required_for_level, level_based_on_xp
+from .level_calculator import next_level_xp, level_to_xp, xp_to_level
 
 
 class ProgressBarEmoji:
@@ -24,10 +24,10 @@ def construct_xp_progress_bar(current_xp, total_segments=10):
     :return: A string representing the progress bar.
     """
     # Determine the current level based on exponential progression
-    current_level = level_based_on_xp(current_xp)
+    current_level = xp_to_level(current_xp)
 
     # Calculate the total XP required to reach the current level
-    xp_for_current_level = xp_required_for_level(current_level)
+    xp_for_current_level = level_to_xp(current_level)
 
     # Calculate the total XP required to reach the next level
     xp_for_next_level = next_level_xp(current_xp)

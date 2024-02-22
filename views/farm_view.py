@@ -157,7 +157,7 @@ class FarmView(discord.ui.View):
                 discord.SelectOption(
                     label=str(number),
                     value=str(number)
-                ) for number in range(1, 7)
+                ) for number in range(1, 6)
             ],
         )
         self.numer_dropdown.callback = self.on_select_plot_number

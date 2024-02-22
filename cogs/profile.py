@@ -9,7 +9,7 @@ from models.farm import FarmModel
 from models.user import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
-from utils.level_calculator import level_based_on_xp, xp_required_for_level, next_level_xp
+from utils.level_calculator import xp_to_level, level_to_xp, next_level_xp
 from utils.progress_bar import construct_xp_progress_bar
 from utils.users import require_user
 

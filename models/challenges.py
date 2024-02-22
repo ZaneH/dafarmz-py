@@ -16,6 +16,7 @@ class ChallengeOptionModel(BaseModel):
     progress: Dict[str, int | float | Any] = {}
     goal_stats: Dict[str, int | float | Any] = {}
     accepted: bool = False
+    level_required: int = 0
 
 
 class ChallengesModel(BaseModel):
@@ -38,7 +39,7 @@ class ChallengesModel(BaseModel):
         """
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         cursor = collection.find({
-            "level": {"$lte": for_level}
+            "level_required": {"$lte": for_level}
         })
 
         challenges = await cursor.to_list(length=None)
