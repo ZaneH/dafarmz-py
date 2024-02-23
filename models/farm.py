@@ -61,7 +61,7 @@ class FarmModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
     discord_id: Optional[str] = None
     plot: Dict[str, FarmPlotItem]
-    environment: Environment = Environment.BASIC_FERTILE_SOIL
+    environment: Environment = Environment.BARREN_WASTELANDS
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):

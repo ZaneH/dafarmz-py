@@ -34,6 +34,18 @@ class ScenarioModel(BaseModel):
 
         return [cls(**scenario) for scenario in list]
 
+    def get_obstructions(self):
+        """
+        Returns a list of obstructions that are present in the scenario.
+        Obstructions are prefixed with `obstruction:` in the key.
+        """
+        obstructions = []
+        for item in self.plot.values():
+            if item.key.startswith("obstruction:"):
+                obstructions.append(item)
+
+        return obstructions
+
     class Config:
         arbitrary_types_allowed = True
         from_attributes = True

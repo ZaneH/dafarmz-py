@@ -8,8 +8,8 @@ from db.shop_data import ShopData
 from models.shop import ShopModel
 from models.user import UserModel
 from utils.currency import format_currency
-from utils.embeds import create_shop_embed
-from utils.emoji_map import EMOJI_MAP
+from utils.embeds import create_shop_embed, create_shop_item_embed
+from utils.shop import name_to_shop_item
 from utils.users import require_user
 from views.sale_view import SaleView
 
@@ -81,10 +81,10 @@ class Shop(commands.Cog):
     @commands.cooldown(5, 8, commands.BucketType.user)
     async def buy(self,
     # fmt: off
-                  ctx: discord.context.ApplicationContext,
-                  type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
-                  name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
-                  amount: discord.Option(int, description="The amount of the item to buy", required=False) = 1): # type: ignore
+    ctx: discord.context.ApplicationContext,
+    type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
+    name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
+    amount: discord.Option(int, description="The amount of the item to buy", required=False) = 1): # type: ignore
     # fmt: on
         if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
             return
@@ -136,10 +136,10 @@ class Shop(commands.Cog):
     @commands.cooldown(5, 8, commands.BucketType.user)
     async def sell(self,
     # fmt: off
-                  ctx: discord.context.ApplicationContext,
-                  type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
-                  name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
-                  amount: discord.Option(int, description="The amount of the item to sell", required=False) = 1): # type: ignore
+    ctx: discord.context.ApplicationContext,
+    type: discord.Option(str, choices=['Plants', 'Machines', 'Tools', 'Upgrades'], description="The type of item to buy", required=False), # type: ignore
+    name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
+    amount: discord.Option(int, description="The amount of the item to sell", required=False) = 1): # type: ignore
     # fmt: on
         if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
             return
@@ -185,6 +185,55 @@ class Shop(commands.Cog):
                 await ctx.respond(embed=receipt)
             else:
                 await ctx.respond("You don't have enough to do that.", ephemeral=True)
+
+    def autocomplete_purchasables(ctx: discord.AutocompleteContext):
+        category = ctx.options['category']
+        name = ctx.options['name']
+        shop_data = ShopData.buyable()
+
+        if len(shop_data) == 0 or len(name) == 0:
+            return [item.name for item in shop_data]
+
+        prefix = ""
+        match category:
+            case "Plants & Seeds":
+                prefix = ["seed:", "plant:"]
+            case "Machines":
+                prefix = ["machine:"]
+            case "Tools & Weapons":
+                prefix = ["tool:", "weapon:"]
+            case "Clothing & Accessories":
+                prefix = ["clothing:", "accessory:"]
+            case _:
+                prefix = ["none:"]
+
+        matching_items = []
+        for item in shop_data:
+            if item.key.startswith(tuple(prefix)) \
+                    and name.lower() in item.name.lower():
+                matching_items.append(item.name)
+
+        return matching_items[:25]
+
+    @commands.slash_command(name="info", description="View information about an item in the shop")
+    @commands.cooldown(3, 8, commands.BucketType.user)
+    async def info(self,
+    # fmt: off
+    ctx: discord.context.ApplicationContext,
+    category: discord.Option(str, choices=[
+        'Plants & Seeds', 'Machines', 'Tools & Weapons', 'Clothing & Accessories'
+    ], description="What are you looking to buy?", required=False), # type: ignore
+    name: discord.Option(
+        str,
+        autocomplete=discord.utils.basic_autocomplete(autocomplete_purchasables),
+        description="The name of the item to buy", required=False
+    )): # type: ignore
+    # fmt: on
+        item = name_to_shop_item(name)
+        key = item.key
+        embed = create_shop_item_embed(item)
+
+        await ctx.respond(embed=embed)
 
     @commands.Cog.listener()
     async def on_ready(self):

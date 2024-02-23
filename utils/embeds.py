@@ -2,7 +2,7 @@ import discord
 
 from db.shop_data import ShopData
 from models.challenges import ChallengesModel
-from models.farm import FarmModel
+from models.shop import ShopModel
 from models.user import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
@@ -112,5 +112,36 @@ def create_shop_embed(shop_data):
             value=f"{EMOJI_MAP['ui:reply']} {format_currency(item.cost)}",
             inline=False
         )
+
+    return embed
+
+
+def create_shop_item_embed(item: ShopModel):
+    embed = discord.Embed(
+        title=item.name,
+        description=f"> *{item.description}*",
+        color=discord.Color.blurple()
+    )
+
+    embed.set_thumbnail(url="https://i.imgur.com/3CQRKGY.png")
+    embed.add_field(
+        name="Cost", value=f"{format_currency(item.cost)}", inline=True)
+    embed.add_field(name="Level Required",
+                    value=f"{item.level_required}", inline=True)
+
+    if item.environment_buffs:
+        buffs = ""
+        for env, buff in item.environment_buffs.items():
+            buff_emoji = "✅"
+            if buff == 0:
+                buff_emoji = "❌"
+            elif buff < 1:
+                buff_emoji = "⏬"
+            elif buff > 1:
+                buff_emoji = "⏫"
+
+            buffs += f"{str(env)}: {buff_emoji}\n"
+
+        embed.add_field(name="Environment Buffs", value=buffs, inline=False)
 
     return embed

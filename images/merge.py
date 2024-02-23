@@ -35,7 +35,7 @@ def generate_image(environment: Environment, plot_state):
     """
     Generate an image of the farm based on the environment and plot state.
 
-    :param environment: The environment of the farm (e.g. basic_fertile_soil)
+    :param environment: The environment of the farm
     :param plot_state: The state of the farm plot
     :return: The generated image
     """

@@ -33,7 +33,8 @@ class Profile(commands.Cog):
             user = UserModel(discord_id=str(ctx.author.id),
                              balance=100, inventory={},
                              created_at=discord.utils.utcnow(), stats={
-                                 "xp": 0, "harvest": {"count": 0}})
+                                 "xp": 0, "harvest": {"count": 0}},
+                             challenges={})
             await user.save()
 
         return await ctx.respond("You're all set! Use `/help` to get started.")

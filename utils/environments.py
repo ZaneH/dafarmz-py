@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Environment(Enum):
-    BASIC_FERTILE_SOIL = "basic_fertile_soil"
+    BARREN_WASTELANDS = "barren_wastelands"
     # GRASSLAND = "grassland"
     CO2_GREENHOUSE = "co2_greenhouse"
     # CAVERNOUS_CAVES = "cavernous_caves"
@@ -10,3 +10,9 @@ class Environment(Enum):
     # ROCKY_RIVERS = "rocky_rivers"
     # ARCTIC_WASTELAND = "arctic_wasteland"
     # GIANT_JUNGLE = "giant_jungle"
+
+    def __str__(self) -> str:
+        if self == Environment.CO2_GREENHOUSE:
+            return "CO2 Greenhouse"
+
+        return self.value.replace("_", " ").title()

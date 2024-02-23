@@ -132,8 +132,22 @@ class ScenarioView(discord.ui.View):
             view=self
         )
 
-    def on_interact_button_clicked(self, interaction: discord.Interaction):
-        pass
+    async def on_interact_button_clicked(self, interaction: discord.Interaction):
+        plot_item = self.get_plot_item()
+        plot_name = self.interaction_helper.cursor_position
+
+        if plot_item and plot_item.data.yields:
+            return await interaction.response.edit_message(
+                content=f"You interacted with {plot_item.key}.",
+                embed=create_scenario_embed(self.profile),
+                view=self
+            )
+
+        return await interaction.response.edit_message(
+            content=f"You can't interact with {plot_name}.",
+            embed=create_scenario_embed(self.profile),
+            view=self
+        )
 
     def get_plot_item(self):
         if not self.interaction_helper:
