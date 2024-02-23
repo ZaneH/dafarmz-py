@@ -32,13 +32,22 @@ class ScenarioPlotItem(PlotItem):
         else:
             return self.data.growth_stage
 
-    def set_to_harvested(self):
+    def update_harvested_at(self):
         """
-        Sets the plant to harvested. Sets the growth stage to None so
-        that it can regrow after harvesting.
+        Sets the plant to harvested.
         """
-        self.data.growth_stage = None
-        return super().set_to_harvested()
+        if self.has_harvested_image:
+            self.data.growth_stage = len(self.lifecycle_images) - 1
+        else:
+            self.data.growth_stage = 0
+
+        return super().update_harvested_at()
+
+    def get_image(self):
+        """
+        Returns the image for the current stage of the plant.
+        """
+        return self.lifecycle_images[self.get_stage()]
 
     class Config:
         arbitrary_types_allowed = True

@@ -5,7 +5,7 @@ from discord import SlashCommandGroup
 from discord.ext import commands
 
 from images.render import render_farm
-from models.plots import PlotModel
+from models.plots import FarmModel, PlotModel
 from models.users import UserModel
 from utils.embeds import create_farm_embed, create_scenario_embed
 from utils.emoji_map import EMOJI_MAP
@@ -43,7 +43,7 @@ class Farm(commands.Cog):
     @commands.slash_command(name="farm", description="View your farm")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def farm(self, ctx: discord.context.ApplicationContext):
-        farm = await PlotModel.find_by_discord_id(ctx.author.id)
+        farm = await FarmModel.find_by_discord_id(ctx.author.id)
         if not await require_user(ctx, farm):
             return
 
@@ -52,7 +52,7 @@ class Farm(commands.Cog):
     @plot.command(name="view", description="View your farm")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def plot_view(self, ctx: discord.context.ApplicationContext):
-        farm = await PlotModel.find_by_discord_id(ctx.author.id)
+        farm = await FarmModel.find_by_discord_id(ctx.author.id)
         if not await require_user(ctx, farm):
             return
 
@@ -70,7 +70,7 @@ class Farm(commands.Cog):
     @commands.slash_command(name="harvest", description="Harvest your farm")
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def harvest(self, ctx: discord.context.ApplicationContext):
-        farm = await PlotModel.find_by_discord_id(ctx.author.id)
+        farm = await FarmModel.find_by_discord_id(ctx.author.id)
         if not await require_user(ctx, farm):
             return
 
@@ -112,7 +112,7 @@ class Farm(commands.Cog):
             return
 
         if seed:
-            farm = await PlotModel.find_by_discord_id(ctx.author.id)
+            farm = await FarmModel.find_by_discord_id(ctx.author.id)
             item = name_to_shop_item(seed)
 
             if item and farm.plant(location, item):
@@ -123,7 +123,7 @@ class Farm(commands.Cog):
                 await ctx.respond("You can't plant that here!")
         else:
             async def _on_plant_callback(seed, view: ChooseSeedView):
-                farm = await PlotModel.find_by_discord_id(ctx.author.id)
+                farm = await FarmModel.find_by_discord_id(ctx.author.id)
                 if farm.plant(location, seed):
                     await farm.save_plot()
                     await view.message.edit(f"You've planted a {seed.name} {EMOJI_MAP[seed.key]} on {location}!", view=None)

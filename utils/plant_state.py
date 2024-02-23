@@ -49,4 +49,25 @@ IMAGE_YIELD_MAP = {
         ],
         has_harvested=True
     ),
+    "plant:apple_bush": LifecycleInfo(
+        lifecycle=[
+            "apple-bush-0.png",
+            "apple-bush-1.png",
+            "apple-bush-2.png",
+            "apple-bush-3.png",
+            "apple-bush-4.png",
+        ],
+        has_harvested=True
+    ),
+    "plant:dusty_rye": LifecycleInfo(
+        lifecycle=[
+            "dusty-rye-0.png",
+            "dusty-rye-1.png",
+            "dusty-rye-2.png",
+            "dusty-rye-3.png",
+            "dusty-rye-4.png",
+            "dusty-rye-5.png",
+        ],
+        has_harvested=True
+    )
 }

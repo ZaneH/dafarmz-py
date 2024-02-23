@@ -59,7 +59,7 @@ class PlotItem(BaseModel):
         return IMAGE_YIELD_MAP.get(self.key, {}).lifecycle
 
     @property
-    def has_harvest_image(self):
+    def has_harvested_image(self):
         return IMAGE_YIELD_MAP.get(self.key, {}).has_harvested
 
     def can_harvest_again(self):
@@ -90,23 +90,23 @@ class PlotItem(BaseModel):
             return self.can_harvest_again()
 
         if not self.lifecycle_images:
+            # Sanity check
             return False
 
         # Get # of images in the lifecycle
-        # If the plant has a harvested image, the last stage is the second to last image
-        stage = self.get_stage()
-        target_stage = len(self.lifecycle_images) - 1
-        if self.has_harvest_image:
-            target_stage = len(self.lifecycle_images) - 1
+        # If the plant has a harvested image, the "ready" stage
+        # is the second to last image in the lifecycle
+        stage = min(self.get_stage(), len(self.lifecycle_images) - 1)
+        ready_stage = min(stage, len(self.lifecycle_images) - 1)
 
-        return stage == target_stage
+        if self.has_harvested_image:
+            stage -= 1
+            ready_stage -= 1
 
-    def set_to_harvested(self):
-        """
-        Check if last_harvested_at is set, if not, set it to the current time.
-        """
-        if not self.data.last_harvested_at:
-            self.data.last_harvested_at = datetime.utcnow()
+        return stage == ready_stage
+
+    def update_harvested_at(self):
+        self.data.last_harvested_at = datetime.utcnow()
 
     def get_stage(self):
         """
@@ -122,27 +122,21 @@ class PlotItem(BaseModel):
             logger.warning(f"Item {self.key} does not have a valid grow time")
             return 0
 
-        if not self.data.last_harvested_at:
+        # If last_harvested_at is set, the plant has been harvested before
+        # If not, calculate the stage based on the planted_at date
+        if self.data.last_harvested_at:
+            time_since_last_harvest = (
+                datetime.utcnow() - self.data.last_harvested_at).total_seconds()
+        elif self.data.planted_at:
+            time_since_last_harvest = (
+                datetime.utcnow() - self.data.planted_at).total_seconds()
+        else:
             return 0
 
-        time_since_last_harvest = (
-            datetime.utcnow() - self.data.last_harvested_at).total_seconds()
         time_per_yield = self.data.grow_time_hr * 3600
         time_elapsed = time_since_last_harvest / time_per_yield
 
-        lifecycle_length = len(self.lifecycle_images)
-        stage = int(time_elapsed)
-
-        if self.has_harvest_image:
-            # Adjust stage calculation for plants that have a harvested image
-            if stage >= lifecycle_length - 1:
-                # Ensure stage does not exceed the pre-harvested last stage
-                stage = lifecycle_length - 1
-        else:
-            # For plants without a harvested image, just limit the stage within the lifecycle range
-            stage = min(stage, lifecycle_length - 1)
-
-        return stage
+        return int(time_elapsed)
 
     def get_image(self):
         """
@@ -160,6 +154,11 @@ class PlotItem(BaseModel):
         stage = self.get_stage()
         if isinstance(image_info, str):
             return image_info
+
+        stage = min(stage, len(self.lifecycle_images) - 1)
+
+        if self.has_harvested_image:
+            stage = min(stage, len(self.lifecycle_images) - 2)
 
         return self.lifecycle_images[stage]
 
@@ -278,7 +277,8 @@ class PlotModel(BaseModel):
             key=item.key.replace("seed:", "plant:"),
             data=BasePlotItemData(
                 yields_remaining=yields_remaining,
-                last_harvested_at=datetime.utcnow(),
+                planted_at=datetime.utcnow(),
+                last_harvested_at=None,
                 yields=yields,
                 death_yields=death_yields,
                 grow_time_hr=grow_time_hr

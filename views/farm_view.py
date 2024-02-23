@@ -201,7 +201,7 @@ class FarmView(discord.ui.View):
                     self.farm.discord_id, "plant", self.selected_plant.key)
 
                 await interaction.response.edit_message(
-                    content=f"You planted {self.selected_plant.name} {EMOJI_MAP[self.selected_plant.key]} on {location}!",
+                    content=f"You planted {self.selected_plant.name} {EMOJI_MAP.get(self.selected_plant.key, '')} on {location}!",
                     files=[await render_farm(self.farm)],
                     view=self,
                     embed=create_farm_embed(
