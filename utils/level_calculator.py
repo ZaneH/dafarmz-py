@@ -1,10 +1,10 @@
 """
-# Helper functions for calculating levels and XP.
-# ---
-# Math based on: https://blog.jakelee.co.uk/converting-levels-into-xp-vice-versa/
-# Formula: (level/x)^y
-# XP = (level/0.07)^2
-# level = 0.07 * √XP
+Helper functions for calculating levels and XP.
+---
+Math based on: https://blog.jakelee.co.uk/converting-levels-into-xp-vice-versa/
+Formula: (level/x)^y
+XP = (level/0.07)^2
+level = 0.07 * √XP
 """
 import math
 

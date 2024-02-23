@@ -1,6 +1,6 @@
-from datetime import datetime
 import logging
 import random
+from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
 
 from bson import ObjectId
@@ -11,7 +11,7 @@ from models.pyobjectid import PyObjectId
 from models.shop_items import ShopItemModel
 from models.yields import YieldModel
 from utils.environments import Environment
-from utils.plant_state import can_harvest
+from utils.plant_state import IMAGE_YIELD_MAP
 from utils.yields import get_yield_with_odds
 
 logger = logging.getLogger(__name__)
@@ -24,15 +24,18 @@ class BasePlotItemData(BaseModel):
     Potential data for a plot item. This model is used to represent the
     data attached to each plot item in the user's farm.
     """
-    yields_remaining: Optional[int] = None  # How many yields are remaining before death
-    # The last time the plot was harvested
+    yields_remaining: Optional[int] = None
+    """How many yields are remaining before death"""
     last_harvested_at: Optional[datetime] = None
-    # Dict of items that the plot item will yield when harvested
+    """The last time the plot was harvested"""
+    planted_at: Optional[datetime] = None
+    """When the plot item was planted"""
     yields: Dict[str, YieldModel] = {}
-    # The yields that the plot item will yield when it dies
+    """Dict of items that the plot item will yield when harvested"""
     death_yields: Optional[Dict[str, YieldModel]] = {}
-    # The time it takes for the plot item to grow
+    """The yields that the plot item will yield when it dies"""
     grow_time_hr: Optional[float] = None
+    """The time it takes for the plot item to grow"""
 
     class Config:
         arbitrary_types_allowed = True
@@ -50,6 +53,115 @@ class PlotItem(BaseModel):
     """
     key: str
     data: Optional[BasePlotItemData] = None
+
+    @property
+    def lifecycle_images(self):
+        return IMAGE_YIELD_MAP.get(self.key, {}).lifecycle
+
+    @property
+    def has_harvest_image(self):
+        return IMAGE_YIELD_MAP.get(self.key, {}).has_harvested
+
+    def can_harvest_again(self):
+        """
+        Determine if the plant is ready to be harvested since the last
+        time it was harvested.
+
+        :return: True if the plant is ready to be harvested, False otherwise
+        """
+        if not self.data.last_harvested_at:
+            return False
+
+        time_since_last_harvest = (
+            datetime.utcnow() - self.data.last_harvested_at).total_seconds()
+        time_per_yield = self.data.grow_time_hr * 3600
+        time_elapsed = time_since_last_harvest / time_per_yield
+
+        return time_elapsed >= 1
+
+    def can_harvest(self):
+        """
+        Determine if the plant can be harvested. Stage must be at the final stage
+        to be considered harvestable.
+
+        :return: True if the plant can be harvested, False otherwise
+        """
+        if self.data.last_harvested_at:
+            return self.can_harvest_again()
+
+        if not self.lifecycle_images:
+            return False
+
+        # Get # of images in the lifecycle
+        # If the plant has a harvested image, the last stage is the second to last image
+        stage = self.get_stage()
+        target_stage = len(self.lifecycle_images) - 1
+        if self.has_harvest_image:
+            target_stage = len(self.lifecycle_images) - 1
+
+        return stage == target_stage
+
+    def set_to_harvested(self):
+        """
+        Check if last_harvested_at is set, if not, set it to the current time.
+        """
+        if not self.data.last_harvested_at:
+            self.data.last_harvested_at = datetime.utcnow()
+
+    def get_stage(self):
+        """
+        Determine the stage of the plant based on the item, yields remaining, and
+        last harvested date.
+
+        :return: The stage of the plant
+        """
+        if not self.lifecycle_images:
+            return 0
+
+        if self.data.grow_time_hr <= 0:
+            logger.warning(f"Item {self.key} does not have a valid grow time")
+            return 0
+
+        if not self.data.last_harvested_at:
+            return 0
+
+        time_since_last_harvest = (
+            datetime.utcnow() - self.data.last_harvested_at).total_seconds()
+        time_per_yield = self.data.grow_time_hr * 3600
+        time_elapsed = time_since_last_harvest / time_per_yield
+
+        lifecycle_length = len(self.lifecycle_images)
+        stage = int(time_elapsed)
+
+        if self.has_harvest_image:
+            # Adjust stage calculation for plants that have a harvested image
+            if stage >= lifecycle_length - 1:
+                # Ensure stage does not exceed the pre-harvested last stage
+                stage = lifecycle_length - 1
+        else:
+            # For plants without a harvested image, just limit the stage within the lifecycle range
+            stage = min(stage, lifecycle_length - 1)
+
+        return stage
+
+    def get_image(self):
+        """
+        Get the image path for the plant stage based on the item, yields remaining,
+        and last harvested date.
+
+        :param item: The item to determine the stage for (e.g. "plant:apple")
+        :param last_harvested: The date the plant was last harvested
+        :return: The image path for the plant stage
+        """
+        image_info = IMAGE_YIELD_MAP.get(self.key)
+        if not image_info:
+            raise ValueError(f"Item {self.key} does not have an image map")
+
+        stage = self.get_stage()
+        if isinstance(image_info, str):
+            return image_info
+
+        return self.lifecycle_images[stage]
 
     class Config:
         arbitrary_types_allowed = True
@@ -106,11 +218,7 @@ class PlotModel(BaseModel):
 
         for plot_id, plot_item in self.plot.items():
             if plot_item.data:
-                is_ready = can_harvest(
-                    plot_item.key,
-                    plot_item.data.last_harvested_at,
-                    plot_item.data.grow_time_hr
-                )
+                is_ready = plot_item.can_harvest()
 
                 if is_ready:
                     for yield_item in plot_item.data.yields.values():

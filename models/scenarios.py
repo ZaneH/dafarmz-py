@@ -1,10 +1,19 @@
+from datetime import datetime
 from typing import Dict, Optional
-from db.database import Database
 
-from models.plots import PlotModel, PlotItem
+from db.database import Database
+from models.plots import BasePlotItemData, PlotItem, PlotModel
 from utils.level_calculator import xp_to_level
 
 COLLECTION_NAME = "scenarios"
+
+
+class ScenarioPlotItemData(BasePlotItemData):
+    """
+    Represents the data for a single plot item in the scenario. This model
+    contains info about what is currently planted in a plot space in the scenario.
+    """
+    growth_stage: Optional[int] = 0  # When the player arrives, what stage is the plant in?
 
 
 class ScenarioPlotItem(PlotItem):
@@ -12,7 +21,24 @@ class ScenarioPlotItem(PlotItem):
     Represents a single plot item in the scenario. This model contains
     info about what is currently planted in a plot space in the scenario.
     """
-    growth_stage: Optional[int] = 0  # When the player arrives, what stage is the plant in?
+    data: Optional[ScenarioPlotItemData] = None
+
+    def get_stage(self):
+        """
+        Returns the stage of the plant in the plot space.
+        """
+        if self.data.growth_stage is None:
+            return super().get_stage()
+        else:
+            return self.data.growth_stage
+
+    def set_to_harvested(self):
+        """
+        Sets the plant to harvested. Sets the growth stage to None so
+        that it can regrow after harvesting.
+        """
+        self.data.growth_stage = None
+        return super().set_to_harvested()
 
     class Config:
         arbitrary_types_allowed = True

@@ -1,9 +1,10 @@
 import logging
+from typing import Dict
 
 from PIL import Image
-from utils.environments import Environment
 
-from utils.plant_state import get_image_for_plot_item_state
+from models.plots import PlotItem
+from utils.environments import Environment
 
 GRID_SIZE = 72
 PLOT_OFFSET_X = 15
@@ -31,7 +32,7 @@ def place_object(base, object_image, grid_x, grid_y):
     return base
 
 
-def generate_image(environment: Environment, plot_state):
+def generate_image(environment: Environment, plot_state: Dict[str, PlotItem]):
     """
     Generate an image of the farm based on the environment and plot state.
 
@@ -47,18 +48,8 @@ def generate_image(environment: Environment, plot_state):
     for plot_id, state in plot_state.items():
         col, row = plot_id[0], plot_id[1:]
 
-        last_harvested_at = None
-        grow_time_hr = None
-        if state.data:
-            last_harvested_at = state.data.last_harvested_at
-            grow_time_hr = state.data.grow_time_hr
-
         try:
-            item_image = get_image_for_plot_item_state(
-                state.key,
-                last_harvested_at,
-                grow_time_hr
-            )
+            item_image = state.get_image()
 
             if item_image:
                 base_image = place_object(

@@ -7,8 +7,6 @@ from images.render import render_scenario
 from models.scenarios import ScenarioModel
 from models.users import UserModel
 from utils.embeds import create_scenario_embed
-from utils.emoji_map import EMOJI_MAP
-from utils.shop import key_to_shop_item
 from utils.yields import harvest_yield_to_list
 
 logger = logging.getLogger(__name__)
@@ -137,7 +135,7 @@ class ScenarioView(discord.ui.View):
 
     async def on_interact_button_clicked(self, interaction: discord.Interaction):
         plot_item = self.get_plot_item()
-        plot_name = self.interaction_helper.cursor_position
+        plot_id = self.interaction_helper.cursor_position
 
         # Interact and harvest
         if plot_item and plot_item.data.yields:
@@ -157,7 +155,7 @@ class ScenarioView(discord.ui.View):
 
             logger.info(
                 f"User {interaction.user.id} interacted and got {harvest_yield}")
-            self.selected_scenario.remove_plant(plot_name)
+            self.selected_scenario.plot[plot_id].set_to_harvested()
             formatted_yield = harvest_yield_to_list(harvest_yield)
 
             if not any(harvest_yield.values()):
@@ -179,7 +177,7 @@ class ScenarioView(discord.ui.View):
             )
 
         return await interaction.response.edit_message(
-            content=f"You can't interact with {plot_name}.",
+            content=f"You can't interact with {plot_id}.",
             embed=create_scenario_embed(self.profile),
             view=self
         )
