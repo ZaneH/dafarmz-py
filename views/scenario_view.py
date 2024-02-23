@@ -7,7 +7,7 @@ from images.render import render_scenario
 from models.scenarios import ScenarioModel
 from models.users import UserModel
 from utils.embeds import create_scenario_embed
-from utils.yields import harvest_yield_to_list
+from utils.yields import harvest_yield_to_determined_yield, harvest_yield_to_list
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +139,11 @@ class ScenarioView(discord.ui.View):
 
         # Interact and harvest
         if plot_item and plot_item.data.yields:
-            harvest_yield = plot_item.data.yields
+            # Convert probabilities to actual yields
+            harvest_yield = harvest_yield_to_determined_yield(
+                plot_item.data.yields
+            )
+
             xp_earned = 10
             logger.info(
                 f"User {interaction.user.id} interacted and got {harvest_yield}")
@@ -151,8 +155,8 @@ class ScenarioView(discord.ui.View):
                     "scenario.harvest.count": 1,
                     "scenario.harvest.xp": xp_earned,
                     **{
-                        f"scenario.harvest.{item_key}": amount
-                        for item_key, amount in harvest_yield.items()
+                        f"scenario.harvest.{item_key}": yields
+                        for item_key, yields in harvest_yield.items()
                     }
                 }
             )

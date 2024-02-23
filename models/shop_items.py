@@ -1,4 +1,3 @@
-import io
 from typing import Dict
 
 from bson import ObjectId
@@ -52,8 +51,7 @@ class ShopItemModel(BaseModel):
 
         return items
 
-    @property
-    def ripe_image_path(self):
+    def get_ripe_image_path(self):
         ripe_image_name = get_ripe_image(self.key)
         if not ripe_image_name:
             return None

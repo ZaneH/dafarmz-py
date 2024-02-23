@@ -6,6 +6,25 @@ from utils.emoji_map import EMOJI_MAP
 from utils.shop import key_to_shop_item
 
 
+def harvest_yield_to_determined_yield(harvest_yield: Dict[str, YieldModel]) -> Dict[str, YieldModel]:
+    """
+    Get a determined yield from a harvest yield.
+
+    :param harvest_yield: The harvest yield to get a determined yield from.
+    :return: The determined yield.
+    """
+    determined_yields = {}
+    for item, yields in harvest_yield.items():
+        amount = get_yield_with_odds(yields)
+        if amount > 0:
+            if item in determined_yields:
+                determined_yields[item].amount += amount
+            else:
+                determined_yields[item] = YieldModel(amount=amount)
+
+    return determined_yields
+
+
 def get_yield_with_odds(yield_: YieldModel) -> int:
     """
     Get the yield as a number with odds factored in.

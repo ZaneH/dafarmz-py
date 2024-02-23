@@ -35,6 +35,7 @@ IMAGE_YIELD_MAP = {
             "polar-peppers-2.png",
             "polar-peppers-3.png",
             "polar-peppers-4.png",
+            "polar-peppers-5.png",
         ],
         has_harvested=True
     ),

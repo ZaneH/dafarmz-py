@@ -228,7 +228,7 @@ class Shop(commands.Cog):
     )): # type: ignore
     # fmt: on
         item = name_to_shop_item(name)
-        image_path = item.ripe_image_path if item else None
+        image_path = item.get_ripe_image_path() if item else None
         file = discord.File(
             image_path, filename=f"{image_path.split('/')[-1]}" if image_path else None
         )

@@ -1,9 +1,12 @@
-from datetime import datetime
 from typing import Dict, Optional
+import logging
 
+from pydantic import Field
 from db.database import Database
 from models.plots import BasePlotItemData, PlotItem, PlotModel
 from utils.level_calculator import xp_to_level
+
+logger = logging.getLogger(__name__)
 
 COLLECTION_NAME = "scenarios"
 
@@ -21,7 +24,7 @@ class ScenarioPlotItem(PlotItem):
     Represents a single plot item in the scenario. This model contains
     info about what is currently planted in a plot space in the scenario.
     """
-    data: Optional[ScenarioPlotItemData] = None
+    data: ScenarioPlotItemData = Field(default_factory=ScenarioPlotItemData)
 
     def get_stage(self):
         """
@@ -47,7 +50,13 @@ class ScenarioPlotItem(PlotItem):
         """
         Returns the image for the current stage of the plant.
         """
-        return self.lifecycle_images[self.get_stage()]
+        stage = self.get_stage()
+        try:
+            return self.lifecycle_images[stage]
+        except:
+            logger.warning(
+                f"Plant {self.key} does not have an image for stage {stage}")
+            return None
 
     class Config:
         arbitrary_types_allowed = True

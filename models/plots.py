@@ -147,7 +147,7 @@ class PlotItem(BaseModel):
         :param last_harvested: The date the plant was last harvested
         :return: The image path for the plant stage
         """
-        image_info = IMAGE_YIELD_MAP.get(self.key)
+        image_info = IMAGE_YIELD_MAP.get(self.key, None)
         if not image_info:
             raise ValueError(f"Item {self.key} does not have an image map")
 
