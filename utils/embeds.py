@@ -2,12 +2,13 @@ import discord
 
 from db.shop_data import ShopData
 from models.challenges import ChallengesModel
-from models.shop import ShopModel
-from models.user import UserModel
+from models.shop_items import ShopItemModel
+from models.users import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
 from utils.inventory import get_amount_in_inventory
 from utils.progress_bar import construct_normal_progrss_bar
+from utils.shop import key_to_shop_item
 
 
 def create_farm_embed(farm_owner_name: str):
@@ -62,12 +63,10 @@ def create_embed_for_challenges(name: str, challenges: ChallengesModel):
         inline=False
     )
 
-    shop_data = ShopData.all()
     for option in challenges.options:
         challenge_rewards = ""
         for reward_key, amount in option.rewards.items():
-            reward_shop_item = next(
-                (item for item in shop_data if item.key == reward_key), None)
+            reward_shop_item = key_to_shop_item(reward_key)
             if reward_shop_item:
                 challenge_rewards += f"{EMOJI_MAP.get(reward_shop_item.key, '')} {reward_shop_item.name}: {amount}\n"
 
@@ -116,7 +115,7 @@ def create_shop_embed(shop_data):
     return embed
 
 
-def create_shop_item_embed(item: ShopModel):
+def create_shop_item_embed(item: ShopItemModel):
     embed = discord.Embed(
         title=item.name,
         description=f"> *{item.description}*",

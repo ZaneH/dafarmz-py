@@ -5,13 +5,13 @@ from pydantic import BaseModel, Field
 
 from db.database import Database
 from models.pyobjectid import PyObjectId
-from models.yieldmodel import YieldModel
+from models.yields import YieldModel
 from utils.environments import Environment
 
 COLLECTION_NAME = "shop"
 
 
-class ShopModel(BaseModel):
+class ShopItemModel(BaseModel):
     """
     Represents a singular shop item from the database.
     """

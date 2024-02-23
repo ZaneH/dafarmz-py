@@ -1,4 +1,4 @@
-from models.user import UserModel
+from models.users import UserModel
 
 
 def get_amount_in_inventory(profile: UserModel, item_key: str) -> int:

@@ -17,6 +17,6 @@ EMOJI_MAP = {
     "plant:polar_peppers": "<:df_rr:1207913276516859936>",
     "plant:dusty_wheat": "<:df_rr:1207913276516859936>",
     "seed:dusty_wheat": "<:df_rr:1207913276516859936>",
-    "seed:apple_bush": "<:df_applebush:1208258545196466249>",
-    "plant:apple_bush": "<:df_applebush:1208258545196466249>",
+    "seed:apple_bush": "<:df_applebush_seed:1210332597574696971>",
+    "plant:apple_bush": "<:df_applebush_seed:1210332597574696971>",
 }

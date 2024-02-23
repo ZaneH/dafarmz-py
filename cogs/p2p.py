@@ -4,7 +4,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from models.user import UserModel
+from models.users import UserModel
 from utils.currency import format_currency
 from utils.users import require_user
 

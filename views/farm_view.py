@@ -3,10 +3,12 @@ from discord.ui.item import Item
 
 from db.shop_data import ShopData
 from images.render import render_farm
-from models.farm import FarmModel
-from models.user import UserModel
+from models.plots import PlotModel
+from models.users import UserModel
 from utils.embeds import create_farm_embed
 from utils.emoji_map import EMOJI_MAP
+from utils.shop import key_to_shop_item
+from utils.yields import harvest_yield_to_list
 
 
 class FarmView(discord.ui.View):
@@ -22,7 +24,7 @@ class FarmView(discord.ui.View):
             view=None
         )
 
-    def __init__(self, farm: FarmModel, farm_owner: discord.User, timeout=120):
+    def __init__(self, farm: PlotModel, farm_owner: discord.User, timeout=120):
         super().__init__(timeout=timeout)
 
         self.farm = farm
@@ -113,9 +115,7 @@ class FarmView(discord.ui.View):
         await UserModel.increment_challenge_progress(
             self.discord_user.id, "harvest", "count")
 
-        formatted_yield = ""
-        for item, yields in harvest_yield.items():
-            formatted_yield += f"{EMOJI_MAP[item]} {yields.amount}x\n"
+        formatted_yield = harvest_yield_to_list(harvest_yield)
 
         self.back_button = self.create_back_button()
         self.add_item(self.back_button)
@@ -135,8 +135,8 @@ class FarmView(discord.ui.View):
         )
 
     async def on_select_seed_callback(self, interaction: discord.Interaction):
-        self.selected_plant = next(
-            plant for plant in self.shop_data if plant.key == interaction.data["values"][0])
+        item_id = interaction.data["values"][0]
+        self.selected_plant = key_to_shop_item(item_id)
 
         self.letter_dropdown = discord.ui.Select(
             placeholder="Choose a letter",

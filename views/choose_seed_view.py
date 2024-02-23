@@ -2,6 +2,7 @@ import discord
 from discord.ui.item import Item
 
 from db.shop_data import ShopData
+from utils.shop import key_to_shop_item
 
 
 class ChooseSeedView(discord.ui.View):
@@ -28,8 +29,8 @@ class ChooseSeedView(discord.ui.View):
         self.add_item(self.seed_select)
 
     async def on_select_seed_callback(self, interaction: discord.Interaction):
-        self.selected_plant = next(
-            plant for plant in self.shop_data if plant.key == interaction.data["values"][0])
+        item_id = interaction.data["values"][0]
+        self.selected_plant = key_to_shop_item(item_id)
 
         if self.chose_seed_callback:
             await self.chose_seed_callback(self.selected_plant, self)

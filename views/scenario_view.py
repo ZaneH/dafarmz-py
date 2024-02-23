@@ -4,9 +4,12 @@ import random
 import discord
 
 from images.render import render_scenario
-from models.scenario import ScenarioModel
-from models.user import UserModel
+from models.scenarios import ScenarioModel
+from models.users import UserModel
 from utils.embeds import create_scenario_embed
+from utils.emoji_map import EMOJI_MAP
+from utils.shop import key_to_shop_item
+from utils.yields import harvest_yield_to_list
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +23,7 @@ class ScenarioView(discord.ui.View):
     def __init__(self, profile: UserModel | None = None, timeout=120):
         super().__init__(timeout=timeout)
 
-        self.selected_scenario = None
+        self.selected_scenario: ScenarioModel = None
         self.profile = profile
         self.explore_button = None  # Go exploring
         self.select_button = None  # Select scenario
@@ -136,10 +139,42 @@ class ScenarioView(discord.ui.View):
         plot_item = self.get_plot_item()
         plot_name = self.interaction_helper.cursor_position
 
+        # Interact and harvest
         if plot_item and plot_item.data.yields:
+            harvest_yield = plot_item.data.yields
+            xp_earned = 10
+            await UserModel.give_items(
+                interaction.user.id, harvest_yield, 0, {
+                    "xp": xp_earned,
+                    "scenario.harvest.count": 1,
+                    "scenario.harvest.xp": xp_earned,
+                    **{
+                        f"scenario.harvest.{item_key}": amount
+                        for item_key, amount in harvest_yield.items()
+                    }
+                }
+            )
+
+            logger.info(
+                f"User {interaction.user.id} interacted and got {harvest_yield}")
+            self.selected_scenario.remove_plant(plot_name)
+            formatted_yield = harvest_yield_to_list(harvest_yield)
+
+            if not any(harvest_yield.values()):
+                return await interaction.response.edit_message(
+                    content="You looked but didn't find anything!",
+                    embed=create_scenario_embed(self.profile),
+                    view=self
+                )
+
             return await interaction.response.edit_message(
-                content=f"You interacted with {plot_item.key}.",
+                content=f"You found:\n{formatted_yield}",
                 embed=create_scenario_embed(self.profile),
+                files=[await render_scenario(
+                    self.selected_scenario.environment,
+                    self.selected_scenario.plot,
+                    self.interaction_helper.cursor_position
+                )],
                 view=self
             )
 

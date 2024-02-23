@@ -1,6 +1,6 @@
 from typing import List
 
-from models.shop import ShopModel
+from models.shop_items import ShopItemModel
 
 
 class ShopData:
@@ -10,11 +10,11 @@ class ShopData:
         self._instance = None
 
     @classmethod
-    def buyable(cls) -> List[ShopModel]:
+    def buyable(cls) -> List[ShopItemModel]:
         return cls.get_instance().buyable_data
 
     @classmethod
-    def all(cls) -> List[ShopModel]:
+    def all(cls) -> List[ShopItemModel]:
         return cls.get_instance().all_shop_data
 
     @classmethod

@@ -9,7 +9,7 @@ from pymongo import ReturnDocument
 from db.database import Database
 from models.challenges import ChallengesModel
 from models.pyobjectid import PyObjectId
-from models.yieldmodel import YieldModel
+from models.yields import YieldModel
 from utils.level_calculator import xp_to_level
 
 logger = logging.getLogger(__name__)

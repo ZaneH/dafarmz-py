@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field
 
 from db.database import Database
 from models.pyobjectid import PyObjectId
-from models.shop import ShopModel
-from models.yieldmodel import YieldModel
+from models.shop_items import ShopItemModel
+from models.yields import YieldModel
 from utils.environments import Environment
 from utils.plant_state import can_harvest
 from utils.yields import get_yield_with_odds
@@ -24,10 +24,14 @@ class BasePlotItemData(BaseModel):
     Potential data for a plot item. This model is used to represent the
     data attached to each plot item in the user's farm.
     """
-    yields_remaining: Optional[int] = None
+    yields_remaining: Optional[int] = None  # How many yields are remaining before death
+    # The last time the plot was harvested
     last_harvested_at: Optional[datetime] = None
+    # Dict of items that the plot item will yield when harvested
     yields: Dict[str, YieldModel] = {}
+    # The yields that the plot item will yield when it dies
     death_yields: Optional[Dict[str, YieldModel]] = {}
+    # The time it takes for the plot item to grow
     grow_time_hr: Optional[float] = None
 
     class Config:
@@ -35,7 +39,7 @@ class BasePlotItemData(BaseModel):
         from_attributes = True
 
 
-class FarmPlotItem(BaseModel):
+class PlotItem(BaseModel):
     """
     Represents a single plot item in the user's farm. This model contains
     info about what is currently planted in a plot space.
@@ -44,7 +48,6 @@ class FarmPlotItem(BaseModel):
     Typically prefixed with `<type>:` where `<type>` is the type of item.
     `data` is any additional information about the plot space.
     """
-
     key: str
     data: Optional[BasePlotItemData] = None
 
@@ -53,24 +56,14 @@ class FarmPlotItem(BaseModel):
         from_attributes = True
 
 
-class FarmModel(BaseModel):
+class PlotModel(BaseModel):
     """
     Represents a user's farm in the database. This model contains info about
     what is currently planted in the user's farm.
     """
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
-    discord_id: Optional[str] = None
-    plot: Dict[str, FarmPlotItem]
+    plot: Dict[str, PlotItem]
     environment: Environment = Environment.BARREN_WASTELANDS
-
-    @classmethod
-    async def find_by_discord_id(cls, discord_id):
-        collection = Database.get_instance().get_collection(COLLECTION_NAME)
-        doc = await collection.find_one({
-            "discord_id": str(discord_id)
-        })
-
-        return cls(**doc) if doc else None
 
     @classmethod
     def generate_random(cls):
@@ -78,7 +71,7 @@ class FarmModel(BaseModel):
         random_plot = {}
         for i in range(5):
             if random.random() > 0.5:
-                random_plot[f"A{i}"] = FarmPlotItem(
+                random_plot[f"A{i}"] = PlotItem(
                     key="plant:apple",
                     data=BasePlotItemData(
                         yields_remaining=5,
@@ -95,6 +88,10 @@ class FarmModel(BaseModel):
             plot=random_plot,
             environment=random_environment
         )
+
+    def remove_plant(self, location: str):
+        if self.plot.get(location):
+            del self.plot[location]
 
     def harvest(self) -> Tuple[Dict[str, YieldModel], int]:
         """
@@ -150,12 +147,11 @@ class FarmModel(BaseModel):
                             harvest_yield[k] = YieldModel(amount=amount)
 
             # Remove the plot item from the plot
-            del self.plot[plot_item]
+            self.remove_plant(plot_item)
 
-        print(harvest_yield)
         return (harvest_yield, xp_earned)
 
-    def plant(self, location: str, item: ShopModel):
+    def plant(self, location: str, item: ShopItemModel):
         # Check if the plot location is already taken
         if self.plot.get(location):
             return False
@@ -169,7 +165,7 @@ class FarmModel(BaseModel):
         yields_remaining = item.total_yields
         grow_time_hr = item.grow_time_hr
 
-        self.plot[location] = FarmPlotItem(
+        self.plot[location] = PlotItem(
             # Replace the seed type with 'plant:' after planting
             key=item.key.replace("seed:", "plant:"),
             data=BasePlotItemData(
@@ -197,6 +193,26 @@ class FarmModel(BaseModel):
             {"$set": {"plot": {k: v.model_dump() for k, v in self.plot.items()}}},
             upsert=True
         )
+
+    class Config:
+        arbitrary_types_allowed = True
+        from_attributes = True
+        json_encoders = {
+            ObjectId: str
+        }
+
+
+class FarmModel(PlotModel):
+    discord_id: Optional[str] = None
+
+    @classmethod
+    async def find_by_discord_id(cls, discord_id):
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        doc = await collection.find_one({
+            "discord_id": str(discord_id)
+        })
+
+        return cls(**doc) if doc else None
 
     class Config:
         arbitrary_types_allowed = True

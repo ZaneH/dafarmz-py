@@ -5,8 +5,8 @@ import discord
 from discord.ext import commands
 from db.shop_data import ShopData
 
-from models.shop import ShopModel
-from models.user import UserModel
+from models.shop_items import ShopItemModel
+from models.users import UserModel
 from utils.currency import format_currency
 from utils.embeds import create_shop_embed, create_shop_item_embed
 from utils.shop import name_to_shop_item
@@ -114,8 +114,7 @@ class Shop(commands.Cog):
             sale_view.on_purchase_callback = _on_purchase_callback
             await ctx.respond("## Jason's Shop", view=sale_view, ephemeral=True)
         else:
-            full_item = next(
-                (item for item in shop_data if item.name == name), None)
+            full_item = name_to_shop_item(name)
             if full_item is None:
                 return await ctx.respond("Item not found.", ephemeral=True)
 
@@ -168,8 +167,7 @@ class Shop(commands.Cog):
             sale_view.on_purchase_callback = _on_purchase_callback
             await ctx.respond("## Jason's Shop", view=sale_view, ephemeral=True)
         else:
-            full_item = next(
-                (item for item in shop_data if item.name == name), None)
+            full_item = name_to_shop_item(name)
             if full_item is None:
                 return await ctx.respond("Item not found.", ephemeral=True)
 
@@ -240,8 +238,8 @@ class Shop(commands.Cog):
         """
         Load shop data when bot is ready.
         """
-        all_items = await ShopModel.find_all()
-        buyable_items = await ShopModel.find_buyable()
+        all_items = await ShopItemModel.find_all()
+        buyable_items = await ShopItemModel.find_buyable()
 
         # Populate shop data
         ShopData.get_instance().all_shop_data = all_items

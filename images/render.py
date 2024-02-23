@@ -5,11 +5,11 @@ import discord
 
 from images.merge import generate_image
 from images.merge import apply_cursor
-from models.farm import FarmModel, FarmPlotItem
+from models.plots import PlotModel, PlotItem
 from utils.environments import Environment
 
 
-async def render_farm(farm: FarmModel):
+async def render_farm(farm: PlotModel):
     """
     Render a farm image.
 
@@ -26,7 +26,7 @@ async def render_farm(farm: FarmModel):
 
 async def render_scenario(
         environment: Environment,
-        plot: Dict[str, FarmPlotItem],
+        plot: Dict[str, PlotItem],
         plot_id: Optional[str] = None
 ):
     """

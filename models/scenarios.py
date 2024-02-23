@@ -1,22 +1,31 @@
-from typing import Dict
-from pydantic import BaseModel
+from typing import Dict, Optional
 from db.database import Database
 
-from models.farm import FarmPlotItem
-from utils.environments import Environment
+from models.plots import PlotModel, PlotItem
 from utils.level_calculator import xp_to_level
 
 COLLECTION_NAME = "scenarios"
 
 
-class ScenarioModel(BaseModel):
+class ScenarioPlotItem(PlotItem):
+    """
+    Represents a single plot item in the scenario. This model contains
+    info about what is currently planted in a plot space in the scenario.
+    """
+    growth_stage: Optional[int] = 0  # When the player arrives, what stage is the plant in?
+
+    class Config:
+        arbitrary_types_allowed = True
+        from_attributes = True
+
+
+class ScenarioModel(PlotModel):
     """
     Represents a single scenario in the database. This model contains
     info about what is available in this scenario. Typically contains
     plants, items, and other things that are available in the scenario.
     """
-    plot: Dict[str, FarmPlotItem] = {}
-    environment: Environment
+    plot: Dict[str, ScenarioPlotItem] = {}
 
     @classmethod
     async def find_scenarios(cls, current_xp: int):

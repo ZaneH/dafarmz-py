@@ -2,6 +2,7 @@ from datetime import datetime
 import discord
 
 from utils.currency import format_currency
+from utils.shop import key_to_shop_item
 
 
 class SaleView(discord.ui.View):
@@ -79,8 +80,7 @@ class SaleView(discord.ui.View):
 
     async def select_item_callback(self, interaction: discord.Interaction):
         self.selected_item = interaction.data["values"][0]
-        self.selected_item_label = next(
-            item for item in self.shop_data if item.key == self.selected_item).name
+        self.selected_item_label = key_to_shop_item(self.selected_item).name
 
         # Set default=True for the selected option
         for option in self.items_select.options:
@@ -122,8 +122,7 @@ class SaleView(discord.ui.View):
 
         verb = "Buying" if self.buy_or_sell == "buy" else "Selling"
 
-        self.full_selected_item = next(
-            item for item in self.shop_data if item.key == self.selected_item)
+        self.full_selected_item = key_to_shop_item(self.selected_item)
 
         self.update_cost_total()
 

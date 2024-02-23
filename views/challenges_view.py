@@ -1,7 +1,7 @@
 from datetime import datetime
 import discord
 
-from models.user import UserModel
+from models.users import UserModel
 from utils.challenges import is_challenge_completed
 from utils.embeds import create_embed_for_challenges
 

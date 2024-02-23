@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Header
 import logging
 
-from models.user import UserModel
+from models.users import UserModel
 
 logger = logging.getLogger(__name__)
 

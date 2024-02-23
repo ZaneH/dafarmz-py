@@ -5,12 +5,13 @@ import discord
 from discord.ext import commands
 from db.shop_data import ShopData
 
-from models.farm import FarmModel
-from models.user import UserModel
+from models.plots import PlotModel
+from models.users import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
 from utils.level_calculator import xp_to_level, level_to_xp, next_level_xp
 from utils.progress_bar import construct_xp_progress_bar
+from utils.shop import key_to_shop_item
 from utils.users import require_user
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,9 @@ class Profile(commands.Cog):
     @commands.slash_command(name="setup", description="Start your farm")
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def setup(self, ctx: discord.context.ApplicationContext):
-        farm = await FarmModel.find_by_discord_id(ctx.author.id)
+        farm = await PlotModel.find_by_discord_id(ctx.author.id)
         if not farm:
-            farm = FarmModel(discord_id=str(ctx.author.id), plot={})
+            farm = PlotModel(discord_id=str(ctx.author.id), plot={})
             await farm.save_plot()
 
         user = await UserModel.find_by_discord_id(ctx.author.id)
@@ -128,12 +129,10 @@ Thank you for helping us grow!""",
             color=discord.Color.dark_gray(),
         )
 
-        shop_data = ShopData.buyable()
         for item_key, item in inventory.items():
             try:
-                item_name = next(
-                    (i.name for i in shop_data if i.key == item_key), None
-                )
+                full_item = key_to_shop_item(item_key)
+                item_name = full_item.name if full_item else None
 
                 if not item_name:
                     logger.warning(f"Item {item_key} not found in shop data")
