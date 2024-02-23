@@ -115,14 +115,18 @@ def create_shop_embed(shop_data):
     return embed
 
 
-def create_shop_item_embed(item: ShopItemModel):
+def create_shop_item_embed(item: ShopItemModel, file: discord.File):
     embed = discord.Embed(
         title=item.name,
-        description=f"> *{item.description}*",
-        color=discord.Color.blurple()
+        description=f"> *{item.description if item.description else 'No description available.'}*",
+        color=discord.Color.embed_background(),
     )
 
-    embed.set_thumbnail(url="https://i.imgur.com/3CQRKGY.png")
+    if file:
+        embed.set_thumbnail(url=f"attachment://{file.filename}")
+    else:
+        embed.set_thumbnail(url="https://i.imgur.com/3CQRKGY.png")
+
     embed.add_field(
         name="Cost", value=f"{format_currency(item.cost)}", inline=True)
     embed.add_field(name="Level Required",

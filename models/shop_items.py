@@ -1,3 +1,4 @@
+import io
 from typing import Dict
 
 from bson import ObjectId
@@ -7,6 +8,7 @@ from db.database import Database
 from models.pyobjectid import PyObjectId
 from models.yields import YieldModel
 from utils.environments import Environment
+from utils.plant_state import build_image_path, get_ripe_image
 
 COLLECTION_NAME = "shop"
 
@@ -49,6 +51,14 @@ class ShopItemModel(BaseModel):
         items = [cls(**item) for item in items]
 
         return items
+
+    @property
+    def ripe_image_path(self):
+        ripe_image_name = get_ripe_image(self.key)
+        if not ripe_image_name:
+            return None
+
+        return build_image_path(ripe_image_name)
 
     class Config:
         from_attributes = True

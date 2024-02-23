@@ -71,3 +71,25 @@ IMAGE_YIELD_MAP = {
         has_harvested=True
     )
 }
+
+
+def get_ripe_image(plant_key: str) -> str:
+    """
+    Returns the ripe image for the plant. If `has_harvested` is True, then
+    the ripe image is the second to last image in the lifecycle. Otherwise, the
+    ripe image is the last image in the lifecycle.
+    """
+    lifecycle_info = IMAGE_YIELD_MAP.get(plant_key)
+    if lifecycle_info is None:
+        logger.error(f"Could not find lifecycle info for plant: {plant_key}")
+        return ""
+
+    lifecycle = lifecycle_info.lifecycle
+    if lifecycle_info.has_harvested:
+        return lifecycle[-2]
+    else:
+        return lifecycle[-1]
+
+
+def build_image_path(image_path: str) -> str:
+    return f"./images/files/new/crops/{image_path}"

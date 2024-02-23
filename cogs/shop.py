@@ -223,15 +223,22 @@ class Shop(commands.Cog):
     ], description="What are you looking to buy?", required=False), # type: ignore
     name: discord.Option(
         str,
-        autocomplete=discord.utils.basic_autocomplete(autocomplete_purchasables),
+        autocomplete=autocomplete_purchasables,
         description="The name of the item to buy", required=False
     )): # type: ignore
     # fmt: on
         item = name_to_shop_item(name)
-        key = item.key
-        embed = create_shop_item_embed(item)
+        image_path = item.ripe_image_path if item else None
+        file = discord.File(
+            image_path, filename=f"{image_path.split('/')[-1]}" if image_path else None
+        )
 
-        await ctx.respond(embed=embed)
+        embed = create_shop_item_embed(item, file)
+
+        await ctx.respond(
+            embed=embed,
+            file=file,
+        )
 
     @commands.Cog.listener()
     async def on_ready(self):
