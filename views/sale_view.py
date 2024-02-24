@@ -11,7 +11,6 @@ class SaleView(discord.ui.View):
     Triggered with /buy or /sell
     """
     async def on_timeout(self):
-        self.disable_all_items()
         await self.message.edit("Transaction ended.", view=None)
 
     def __init__(self, shop_data, buy_or_sell="buy"):

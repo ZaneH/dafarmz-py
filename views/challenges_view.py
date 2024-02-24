@@ -13,7 +13,6 @@ class ChallengesView(discord.ui.View):
     Triggered with /challenges
     """
     async def on_timeout(self) -> None:
-        self.clear_items()
         await self.message.edit(
             content="",
             view=None

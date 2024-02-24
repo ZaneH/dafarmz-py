@@ -18,7 +18,6 @@ class FarmView(discord.ui.View):
     Triggered with /farm
     """
     async def on_timeout(self):
-        self.clear_items()
         await self.message.edit(
             content="",
             view=None

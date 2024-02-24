@@ -14,8 +14,6 @@ logger = logging.getLogger(__name__)
 
 class ScenarioView(discord.ui.View):
     async def on_timeout(self):
-        self.clear_items()
-        self.stop()
         await self.message.edit(view=None)
 
     def __init__(self, profile: UserModel | None = None, timeout=120):

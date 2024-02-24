@@ -6,8 +6,11 @@ from utils.shop import key_to_shop_item
 
 
 class ChooseSeedView(discord.ui.View):
+    async def on_timeout(self):
+        await self.message.edit("Selection timed out.", view=None)
+
     def __init__(self):
-        super().__init__(timeout=60)
+        super().__init__(timeout=120)
 
         self.chose_seed_callback = None
 

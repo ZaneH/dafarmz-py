@@ -3,12 +3,40 @@ import discord
 from db.shop_data import ShopData
 from models.challenges import ChallengesModel
 from models.shop_items import ShopItemModel
-from models.users import UserModel
+from models.users import RobotModel, UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
 from utils.inventory import get_amount_in_inventory
 from utils.progress_bar import construct_normal_progrss_bar
 from utils.shop import key_to_shop_item
+
+
+def create_robot_embed(robot: RobotModel):
+    embed = discord.Embed(
+        title=robot.name,
+        description=f"{robot.xp} XP",
+        color=discord.Color.embed_background()
+    )
+
+    embed.add_field(
+        name="Attack",
+        value=f"{EMOJI_MAP['ui:reply']} {robot.attack}",
+        inline=True
+    )
+
+    embed.add_field(
+        name="Defense",
+        value=f"{EMOJI_MAP['ui:reply']} {robot.defense}",
+        inline=True
+    )
+
+    embed.add_field(
+        name="Speed",
+        value=f"{EMOJI_MAP['ui:reply']} {robot.speed}",
+        inline=True
+    )
+
+    return embed
 
 
 def create_farm_embed(farm_owner_name: str):

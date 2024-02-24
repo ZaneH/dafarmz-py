@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
 from pydantic import BaseModel, Field
@@ -15,6 +15,16 @@ from utils.level_calculator import xp_to_level
 logger = logging.getLogger(__name__)
 
 COLLECTION_NAME = "users"
+
+
+class RobotModel(BaseModel):
+    name: str = ""
+    max_energy: int = 0
+    energy: int = 0
+    attack: int = 0
+    defense: int = 0
+    speed: int = 0
+    xp: int = 0
 
 
 class UserInventoryItem(BaseModel):
@@ -47,6 +57,7 @@ class UserModel(BaseModel):
     challenges: ChallengesModel = Field(
         default_factory=ChallengesModel)
     """The user's challenges as a `ChallengesModel`."""
+    robots: List[RobotModel] = []
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):
