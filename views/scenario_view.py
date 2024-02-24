@@ -14,7 +14,15 @@ logger = logging.getLogger(__name__)
 
 class ScenarioView(discord.ui.View):
     async def on_timeout(self):
-        await self.message.edit(view=None)
+        await self.message.edit(
+            view=None,
+            content="",
+            files=[await render_scenario(
+                self.selected_scenario.environment,
+                self.selected_scenario.plot
+            )],
+            attachments=[]
+        )
 
     def __init__(self, profile: UserModel | None = None, timeout=120):
         super().__init__(timeout=timeout)
@@ -94,6 +102,7 @@ class ScenarioView(discord.ui.View):
         await interaction.response.edit_message(
             files=[await render_scenario(environment, plot)],
             embed=create_scenario_embed(self.profile),
+            attachments=[],
             view=self
         )
 
@@ -119,6 +128,7 @@ class ScenarioView(discord.ui.View):
             content="",
             files=[await render_scenario(environment, plot, self.interaction_helper.cursor_position)],
             embed=create_scenario_embed(self.profile),
+            attachments=[],
             view=self
         )
 
@@ -128,6 +138,7 @@ class ScenarioView(discord.ui.View):
         await interaction.response.edit_message(
             files=[await render_scenario(environment, plot, self.interaction_helper.cursor_position)],
             embed=create_scenario_embed(self.profile),
+            attachments=[],
             view=self
         )
 
@@ -168,12 +179,14 @@ class ScenarioView(discord.ui.View):
                 return await interaction.response.edit_message(
                     content="You looked but didn't find anything!",
                     embed=create_scenario_embed(self.profile),
+                    attachments=[],
                     view=self
                 )
 
             return await interaction.response.edit_message(
                 content=f"You found:\n{formatted_yield}",
                 embed=create_scenario_embed(self.profile),
+                attachments=[],
                 files=[await render_scenario(
                     self.selected_scenario.environment,
                     self.selected_scenario.plot,
@@ -185,6 +198,7 @@ class ScenarioView(discord.ui.View):
         return await interaction.response.edit_message(
             content=f"You can't interact with {plot_id}.",
             embed=create_scenario_embed(self.profile),
+            attachments=[],
             view=self
         )
 

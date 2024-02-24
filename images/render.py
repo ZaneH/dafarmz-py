@@ -25,9 +25,9 @@ async def render_farm(farm: PlotModel):
 
 
 async def render_scenario(
-        environment: Environment,
-        plot: Dict[str, PlotItem],
-        plot_id: Optional[str] = None
+    environment: Environment,
+    plot: Dict[str, PlotItem],
+    plot_id: Optional[str] = None
 ):
     """
     Render a scenario image.

@@ -57,7 +57,6 @@ class UserModel(BaseModel):
     challenges: ChallengesModel = Field(
         default_factory=ChallengesModel)
     """The user's challenges as a `ChallengesModel`."""
-    robots: List[RobotModel] = []
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):

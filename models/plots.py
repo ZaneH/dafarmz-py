@@ -184,7 +184,7 @@ class PlotModel(BaseModel):
     """
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
     plot: Dict[str, PlotItem]
-    environment: Environment = Environment.BARREN_WASTELANDS
+    environment: Environment = Environment.DA_FIELDS
 
     @classmethod
     def generate_random(cls):

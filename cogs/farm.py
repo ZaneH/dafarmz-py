@@ -28,15 +28,19 @@ class Farm(commands.Cog):
     async def start_farm_view(
             self, ctx: discord.context.ApplicationContext, farm: PlotModel):
         farm_view = FarmView(farm, ctx.author)
-        await ctx.respond(embed=create_farm_embed(ctx.author.display_name),
-                          view=farm_view,
-                          files=[await render_farm(farm)])
+        await ctx.respond(
+            embed=create_farm_embed(ctx.author.display_name),
+            view=farm_view,
+            files=[await render_farm(farm)],
+            attachments=[]
+        )
 
     async def start_explore_view(
             self, ctx: discord.context.ApplicationContext, profile: UserModel):
         explore_view = ScenarioView(profile)
         await ctx.respond(
             embed=create_scenario_embed(profile),
+            files=[],
             view=explore_view
         )
 

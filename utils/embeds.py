@@ -61,7 +61,6 @@ def create_scenario_embed(profile: UserModel):
         inline=False
     )
 
-    embed.set_image(url="attachment://scenario.png")
     return embed
 
 
