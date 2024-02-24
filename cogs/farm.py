@@ -32,7 +32,6 @@ class Farm(commands.Cog):
             embed=create_farm_embed(ctx.author.display_name),
             view=farm_view,
             files=[await render_farm(farm)],
-            attachments=[]
         )
 
     async def start_explore_view(

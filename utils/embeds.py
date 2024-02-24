@@ -1,3 +1,4 @@
+import random
 import discord
 
 from db.shop_data import ShopData
@@ -7,7 +8,8 @@ from models.users import RobotModel, UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
 from utils.inventory import get_amount_in_inventory
-from utils.progress_bar import construct_normal_progrss_bar
+from utils.level_calculator import next_level_xp
+from utils.progress_bar import construct_normal_progrss_bar, construct_xp_progress_bar
 from utils.shop import key_to_shop_item
 
 
@@ -174,4 +176,28 @@ def create_shop_item_embed(item: ShopItemModel, file: discord.File):
 
         embed.add_field(name="Environment Buffs", value=buffs, inline=False)
 
+    return embed
+
+
+def create_profile_embed(profile: UserModel, discord_user: discord.User):
+    random_tip = random.choice([
+        "Use </inventory:1207866795147657219> to view your inventory.",
+        "Use </stats:1207963367864795207> to view statistics about your farm.",
+    ])
+
+    xp = profile.stats.get("xp", 0)
+    next_milestone = next_level_xp(xp)
+    embed = discord.Embed(
+        title=f"{discord_user.display_name}'s Profile :farmer:",
+        description=f"""**Balance**: {format_currency(profile.balance)}
+**Joined**: {profile.created_at.strftime("%b %d, %Y")}
+
+**Level {profile.current_level}** – {xp}/{next_milestone} XP:
+{construct_xp_progress_bar(int(xp), 8)}
+
+{random_tip}""",
+        color=discord.Color.dark_gray(),
+    )
+
+    embed.set_thumbnail(url=discord_user.avatar.url)
     return embed

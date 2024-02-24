@@ -1,4 +1,5 @@
 from datetime import datetime
+
 import discord
 
 from models.users import UserModel
@@ -28,7 +29,7 @@ class ChallengesView(discord.ui.View):
 
         select = discord.ui.Select(
             placeholder="Select a challenge",
-            row=0,
+            row=1,
             options=selection_options
         )
 
@@ -64,9 +65,17 @@ class ChallengesView(discord.ui.View):
             row=4,
         )
 
+        self.back_button = discord.ui.Button(
+            style=discord.ButtonStyle.blurple,
+            label="←",
+            row=4,
+        )
+
         self.accept_button.callback = self.on_accept_button_clicked
         self.claim_button.callback = self.on_claim_button_clicked
         self.refresh_button.callback = self.on_refresh_button_clicked
+        self.back_button.callback = self.on_back_button_clicked
+        self.add_item(self.back_button)
 
         can_refresh = (datetime.utcnow(
         ) - self.profile.challenges.last_refreshed_at).total_seconds() > 86400
@@ -204,3 +213,14 @@ class ChallengesView(discord.ui.View):
             )
 
             await interaction.response.defer()
+
+    async def on_back_button_clicked(self, interaction: discord.Interaction):
+        from cogs.menu import create_main_menu_embed
+        from views.main_menu_view import MainMenuView
+        main_menu = MainMenuView()
+        await interaction.message.edit(
+            embed=create_main_menu_embed(),
+            view=main_menu
+        )
+
+        await interaction.response.defer()

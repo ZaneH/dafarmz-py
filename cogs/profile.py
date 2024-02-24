@@ -8,6 +8,7 @@ from db.shop_data import ShopData
 from models.plots import PlotModel
 from models.users import UserModel
 from utils.currency import format_currency
+from utils.embeds import create_profile_embed
 from utils.emoji_map import EMOJI_MAP
 from utils.level_calculator import xp_to_level, level_to_xp, next_level_xp
 from utils.progress_bar import construct_xp_progress_bar
@@ -50,26 +51,7 @@ class Profile(commands.Cog):
         if not await require_user(ctx, profile):
             return
 
-        random_tip = random.choice([
-            "Use </inventory:1207866795147657219> to view your inventory.",
-            "Use </stats:1207963367864795207> to view statistics about your farm.",
-        ])
-
-        xp = profile.stats.get("xp", 0)
-        next_milestone = next_level_xp(xp)
-        embed = discord.Embed(
-            title=f"{ctx.author.display_name}'s Profile :farmer:",
-            description=f"""**Balance**: {format_currency(profile.balance)}
-**Joined**: {profile.created_at.strftime("%b %d, %Y")}
-
-**Level {profile.current_level}** – {xp}/{next_milestone} XP:
-{construct_xp_progress_bar(int(xp), 8)}
-
-{random_tip}""",
-            color=discord.Color.dark_gray(),
-        )
-
-        embed.set_thumbnail(url=ctx.author.avatar.url)
+        embed = create_profile_embed(profile, ctx.author)
 
         return await ctx.respond(embed=embed)
 
