@@ -19,4 +19,5 @@ EMOJI_MAP = {
     "seed:dusty_rye": "<:df_dustyrye:1210715110566264883>",
     "seed:apple_bush": "<:df_applebush_seed:1210332597574696971>",
     "plant:apple_bush": "<:df_applebush_seed:1210332597574696971>",
+    "emote:topgg": "<:topgg:918280202398875758>",
 }

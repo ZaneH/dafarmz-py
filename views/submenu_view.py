@@ -20,6 +20,7 @@ class SubmenuView(discord.ui.View):
         from cogs.menu import create_main_menu_embed
         from views.main_menu_view import MainMenuView
         await interaction.response.edit_message(
+            content="",
             embed=create_main_menu_embed(),
             view=MainMenuView(),
             files=[],

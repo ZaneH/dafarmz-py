@@ -128,12 +128,12 @@ def create_embed_for_challenges(name: str, challenges: ChallengesModel):
     return embed
 
 
-def create_shop_embed(shop_data):
+def create_shop_embed(shop_items: list[ShopItemModel]):
     embed = discord.Embed(title="Jason's Shop",
                           color=discord.Color.blurple())
 
     embed.set_thumbnail(url="https://i.imgur.com/3CQRKGY.png")
-    for item in shop_data:
+    for item in shop_items:
         embed.add_field(
             name=f"{EMOJI_MAP.get(item.key, '')} {item.name}",
             value=f"{EMOJI_MAP['ui:reply']} {format_currency(item.cost)}",
@@ -202,19 +202,135 @@ def create_profile_embed(profile: UserModel, discord_user: discord.User):
     return embed
 
 
-def create_stats_embed(profile: UserModel):
+def create_farm_stats_embed(profile: UserModel):
     embed = discord.Embed(
         title="Farm Statistics",
         description=f"**Balance**: {format_currency(profile.balance)}",
         color=discord.Color.embed_background()
     )
 
-    harvest_conut = profile.stats.get("harvest", {}).get("count", 0)
+    planted_count = profile.stats.get("plant", {}).get("count", 0)
+    harvest_count = profile.stats.get("harvest", {}).get("count", 0)
+
+    embed.add_field(
+        name="Planted",
+        value=f"{EMOJI_MAP['emote:potted']} {planted_count}",
+        inline=True
+    )
 
     embed.add_field(
         name="Harvests",
-        value=f"{EMOJI_MAP['ui:reply']} {harvest_conut}",
+        value=f"{EMOJI_MAP['tool:harvest']} {harvest_count}",
         inline=True
+    )
+
+    return embed
+
+
+def create_explore_stats_embed(profile: UserModel):
+    embed = discord.Embed(
+        title="Explore Statistics",
+        description=f"**Balance**: {format_currency(profile.balance)}",
+        color=discord.Color.embed_background()
+    )
+
+    harvest_count = profile.stats.get(
+        "scenario", {}).get("harvest", {}).get("count", 0)
+    xp_earned_harvesting = profile.stats.get(
+        "scenario", {}).get("harvest", {}).get("xp", 0)
+
+    embed.add_field(
+        name="Harvests",
+        value=f"{EMOJI_MAP['tool:harvest']} {harvest_count}",
+        inline=True
+    )
+
+    embed.add_field(
+        name="XP Earned",
+        value=f"{EMOJI_MAP['item:xp']} {xp_earned_harvesting}",
+        inline=True
+    )
+
+    return embed
+
+
+def create_command_list_embed():
+    embed = discord.Embed(
+        title="Help (Command List)",
+        description="Here are the commands you can use to interact with the bot.",
+        color=discord.Color.embed_background()
+    )
+
+    embed.add_field(
+        name="🏠 Main Menu",
+        value="`/menu`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🌾 Farm",
+        value="`/farm`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🛒 Shop",
+        value="`/shop`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="📊 Stats",
+        value="`/stats`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🎮 Challenges",
+        value="`/challenges`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🤖 Robot HQ",
+        value="`/robot`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🔍 Explore",
+        value="`/explore`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🎣 Fish",
+        value="`/fish`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🔫 Battle",
+        value="`/battle`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🏚️ Bunker",
+        value="`/bunker`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🍔 Eat",
+        value="`/eat`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🗳️ Vote",
+        value="`/vote`",
+        inline=False
     )
 
     return embed

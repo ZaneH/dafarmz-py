@@ -14,6 +14,8 @@ from utils.level_calculator import xp_to_level, level_to_xp, next_level_xp
 from utils.progress_bar import construct_xp_progress_bar
 from utils.shop import key_to_shop_item
 from utils.users import require_user
+from views.submenu_view import SubmenuView
+from views.vote_view import VoteView
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +67,7 @@ class Profile(commands.Cog):
             )
 
     @commands.slash_command(name="vote", description="Vote for the bot to earn rewards")
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(3, 10, commands.BucketType.user)
     async def vote(self, ctx: discord.context.ApplicationContext):
         profile = await UserModel.find_by_discord_id(ctx.author.id)
         if not await require_user(ctx, profile):
@@ -77,16 +79,14 @@ class Profile(commands.Cog):
 - +500 {EMOJI_MAP["item:coin"]} for each vote
 
 Thank you for helping us grow!""",
-            fields=[
-                discord.EmbedField(
-                    name="Top.gg",
-                    value="[Vote here](https://top.gg/bot/1141161773983088640/vote)"
-                ),
-            ],
             color=discord.Color.embed_background()
         )
 
-        return await ctx.respond(embed=embed)
+        vote_view = VoteView()
+        return await ctx.respond(
+            embed=embed,
+            view=vote_view
+        )
 
     @commands.slash_command(name="stats", description="View your farming stats")
     @commands.cooldown(1, 4, commands.BucketType.user)

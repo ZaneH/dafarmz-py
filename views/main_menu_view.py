@@ -4,12 +4,15 @@ from images.render import render_farm
 from models.plots import FarmModel
 
 from models.users import UserModel
-from utils.embeds import create_embed_for_challenges, create_farm_embed, create_profile_embed
+from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_profile_embed, create_shop_embed
+from utils.emoji_map import EMOJI_MAP
 from views.challenges_view import ChallengesView
 from views.command_center_view import CommandCenterView
 from views.farm_view import FarmView
 from views.profile_view import ProfileView
 from views.robot_hq_view import RobotHQView
+from views.shop_view import ShopView
+from views.submenu_view import SubmenuView
 
 
 class MainMenuView(discord.ui.View):
@@ -121,7 +124,7 @@ class MainMenuView(discord.ui.View):
             label="Shop",
             row=2,
         )
-        self.shop_button.callback = self.on_robot_hq_button_clicked
+        self.shop_button.callback = self.on_shop_button_clicked
         self.add_item(self.shop_button)
 
         self.craft_button = discord.ui.Button(
@@ -152,7 +155,7 @@ class MainMenuView(discord.ui.View):
             label="Vote",
             row=4,
             url="https://top.gg/bot/1141161773983088640/vote",
-            emoji="<:topgg:918280202398875758>"
+            emoji=f"{EMOJI_MAP['emote:topgg']}"
         )
         self.add_item(self.vote_button)
 
@@ -177,7 +180,10 @@ class MainMenuView(discord.ui.View):
         await interaction.response.send_message("Explore button clicked!", ephemeral=True)
 
     async def on_help_button_clicked(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Profile button clicked!", ephemeral=True)
+        back_view = SubmenuView()
+        embed = create_command_list_embed()
+        await interaction.message.edit(embed=embed, view=back_view)
+        await interaction.response.defer()
 
     async def on_challenges_button_clicked(self, interaction: discord.Interaction):
         user = await UserModel.find_by_discord_id(interaction.user.id)
@@ -197,3 +203,14 @@ class MainMenuView(discord.ui.View):
         )
 
         await interaction.response.defer()
+
+    async def on_shop_button_clicked(self, interaction: discord.Interaction):
+        shop_view = ShopView()
+        embed = create_shop_embed(shop_view.pagination.get_page())
+        await interaction.response.edit_message(
+            content="",
+            embed=embed,
+            view=shop_view,
+            files=[],
+            attachments=[]
+        )
