@@ -59,7 +59,7 @@ def create_embed_for_challenges(name: str, challenges: ChallengesModel):
 
     embed.add_field(
         name="Active Challenges",
-        value=f"{active_challenges}/{max_active}",
+        value=f"` {active_challenges} / {max_active} `",
         inline=False
     )
 

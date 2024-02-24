@@ -35,11 +35,18 @@ class UserModel(BaseModel):
     """
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
     discord_id: str = ""
+    """Discord ID of the user as str."""
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    """The date and time the user was created as datetime."""
     balance: int = 0
+    """The user's balance as int."""
     inventory: Dict[str, UserInventoryItem] = {}
+    """The user's inventory as a dictionary of `UserInventoryItem`."""
     stats: Dict[str, int | float | Any] = {}
-    challenges: Optional[ChallengesModel] = None
+    """The user's stats as a dictionary of int or float."""
+    challenges: ChallengesModel = Field(
+        default_factory=ChallengesModel)
+    """The user's challenges as a `ChallengesModel`."""
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):

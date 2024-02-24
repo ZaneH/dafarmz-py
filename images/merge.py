@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Dict
 
 from PIL import Image
@@ -50,11 +51,15 @@ def generate_image(environment: Environment, plot_state: Dict[str, PlotItem]):
 
         try:
             item_image = state.get_image()
+            file_path = f"./images/files/new/crops/{item_image}"
+            if not os.path.exists(file_path):
+                logger.error(f"Image does not exist: {file_path}")
+                file_path = f"./images/files/new/unknown.png"
 
             if item_image:
                 base_image = place_object(
                     base_image,
-                    f"./images/files/new/crops/{item_image}",
+                    file_path,
                     ord(col) - 64,
                     int(row)
                 )

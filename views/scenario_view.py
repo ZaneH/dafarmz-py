@@ -147,7 +147,10 @@ class ScenarioView(discord.ui.View):
             xp_earned = 10
             logger.info(
                 f"User {interaction.user.id} interacted and got {harvest_yield}")
-            self.selected_scenario.plot[plot_id].update_harvested_at()
+            plot_item.update_harvested_at()
+            if plot_item.data.yields_remaining == 1:
+                plot_item.data.yields_remaining = 0
+                del self.selected_scenario.plot[plot_id]
 
             await UserModel.give_items(
                 interaction.user.id, harvest_yield, 0, {

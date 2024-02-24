@@ -11,7 +11,7 @@ from models.pyobjectid import PyObjectId
 from models.shop_items import ShopItemModel
 from models.yields import YieldModel
 from utils.environments import Environment
-from utils.plant_state import IMAGE_YIELD_MAP
+from utils.plant_state import LIFECYCLE_MAP
 from utils.yields import get_yield_with_odds
 
 logger = logging.getLogger(__name__)
@@ -56,11 +56,11 @@ class PlotItem(BaseModel):
 
     @property
     def lifecycle_images(self):
-        return IMAGE_YIELD_MAP.get(self.key, {}).lifecycle
+        return LIFECYCLE_MAP.get(self.key, {}).lifecycle
 
     @property
     def has_harvested_image(self):
-        return IMAGE_YIELD_MAP.get(self.key, {}).has_harvested
+        return LIFECYCLE_MAP.get(self.key, {}).has_harvested
 
     def can_harvest_again(self):
         """
@@ -147,20 +147,30 @@ class PlotItem(BaseModel):
         :param last_harvested: The date the plant was last harvested
         :return: The image path for the plant stage
         """
-        image_info = IMAGE_YIELD_MAP.get(self.key, None)
-        if not image_info:
-            raise ValueError(f"Item {self.key} does not have an image map")
-
         stage = self.get_stage()
-        if isinstance(image_info, str):
-            return image_info
+        try:
+            if self.key.startswith("plant:"):
+                image_info = LIFECYCLE_MAP.get(self.key, None)
 
-        stage = min(stage, len(self.lifecycle_images) - 1)
+                if not image_info:
+                    raise ValueError(
+                        f"Item {self.key} does not have an image map")
 
-        if self.has_harvested_image:
-            stage = min(stage, len(self.lifecycle_images) - 2)
+                if isinstance(image_info, str):
+                    return image_info
 
-        return self.lifecycle_images[stage]
+                stage = min(stage, len(self.lifecycle_images) - 1)
+
+                if self.has_harvested_image:
+                    stage = min(stage, len(self.lifecycle_images) - 2)
+
+                return self.lifecycle_images[stage]
+            elif self.key.startswith("obstruction:"):
+                # Example: obstruction:rock -> obstruction-rock.png
+                return f"obstruction-{self.key.split(':')[1]}.png"
+        except:
+            logger.warning(
+                f"Couldn't get_image for {self.key} at stage {stage}")
 
     class Config:
         arbitrary_types_allowed = True

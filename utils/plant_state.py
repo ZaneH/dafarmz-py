@@ -17,7 +17,7 @@ class LifecycleInfo:
         self.has_harvested = has_harvested
 
 
-IMAGE_YIELD_MAP = {
+LIFECYCLE_MAP = {
     "plant:crystalline_cabbage": LifecycleInfo(
         lifecycle=[
             "crystalline-cabbage-0.png",
@@ -80,7 +80,7 @@ def get_ripe_image(plant_key: str) -> str:
     the ripe image is the second to last image in the lifecycle. Otherwise, the
     ripe image is the last image in the lifecycle.
     """
-    lifecycle_info = IMAGE_YIELD_MAP.get(plant_key)
+    lifecycle_info = LIFECYCLE_MAP.get(plant_key)
     if lifecycle_info is None:
         logger.error(f"Could not find lifecycle info for plant: {plant_key}")
         return ""

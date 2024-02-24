@@ -37,7 +37,7 @@ class ScenarioPlotItem(PlotItem):
 
     def update_harvested_at(self):
         """
-        Sets the plant to harvested.
+        Sets the plant to harvested image.
         """
         if self.has_harvested_image:
             self.data.growth_stage = len(self.lifecycle_images) - 1
@@ -54,9 +54,7 @@ class ScenarioPlotItem(PlotItem):
         try:
             return self.lifecycle_images[stage]
         except:
-            logger.warning(
-                f"Plant {self.key} does not have an image for stage {stage}")
-            return None
+            return super().get_image()
 
     class Config:
         arbitrary_types_allowed = True
