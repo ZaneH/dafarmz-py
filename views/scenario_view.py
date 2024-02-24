@@ -8,11 +8,12 @@ from models.scenarios import ScenarioModel
 from models.users import UserModel
 from utils.embeds import create_scenario_embed
 from utils.yields import harvest_yield_to_determined_yield, harvest_yield_to_list
+from views.submenu_view import SubmenuView
 
 logger = logging.getLogger(__name__)
 
 
-class ScenarioView(discord.ui.View):
+class ScenarioView(SubmenuView):
     async def on_timeout(self):
         await self.message.edit(
             view=None,
@@ -32,7 +33,6 @@ class ScenarioView(discord.ui.View):
         self.explore_button = None  # Go exploring
         self.select_button = None  # Select scenario
         self.next_button = None  # Next scenario
-        self.back_button = None  # Back
         self.interaction_helper = None
 
         self.add_stage_one_buttons()
@@ -43,7 +43,10 @@ class ScenarioView(discord.ui.View):
         """
         self.remove_item(self.explore_button)
         self.explore_button = discord.ui.Button(
-            style=discord.ButtonStyle.primary, label="Explore")
+            style=discord.ButtonStyle.primary,
+            label="Explore",
+            row=1,
+        )
         self.explore_button.callback = self.on_explore_button_clicked
         self.add_item(self.explore_button)
 
@@ -53,11 +56,17 @@ class ScenarioView(discord.ui.View):
         """
         self.remove_item(self.explore_button)
         self.select_button = discord.ui.Button(
-            style=discord.ButtonStyle.primary, label="Select")
+            style=discord.ButtonStyle.primary,
+            label="Select",
+            row=1,
+        )
         self.select_button.callback = self.on_select_button_clicked
         self.add_item(self.select_button)
         self.next_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary, label="Next")
+            style=discord.ButtonStyle.secondary,
+            label="Next",
+            row=1,
+        )
         self.next_button.callback = self.on_explore_button_clicked
         self.add_item(self.next_button)
 
@@ -72,19 +81,8 @@ class ScenarioView(discord.ui.View):
         if self.interaction_helper:
             self.interaction_helper.remove_buttons(self)
 
-    def add_back_button(self):
-        self.remove_item(self.back_button)
-        self.back_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary, label="Back")
-        self.back_button.callback = self.on_back_button_clicked
-        self.add_item(self.back_button)
-
-    def remove_back_button(self):
-        self.remove_item(self.back_button)
-
     async def on_explore_button_clicked(self, interaction: discord.Interaction):
         self.remove_stage_two_buttons()
-        self.remove_back_button()
         self.remove_scenario_buttons()
 
         current_xp = self.profile.stats.get("xp", 0)
@@ -95,7 +93,6 @@ class ScenarioView(discord.ui.View):
         plot = self.selected_scenario.plot
 
         self.remove_stage_one_buttons()
-        self.add_back_button()
 
         self.add_stage_two_buttons()
 
@@ -112,7 +109,8 @@ class ScenarioView(discord.ui.View):
         Present the main scenario controls.
         """
         self.remove_stage_two_buttons()
-        self.remove_back_button()
+
+        self.clear_items()
 
         self.interaction_helper = ScenarioInteractionHelper()
         self.interaction_helper.setup_buttons()
@@ -214,19 +212,14 @@ class ScenarioView(discord.ui.View):
         self.add_stage_one_buttons()
         self.remove_scenario_buttons()
 
+        self.readd_back_button()
+
         await interaction.response.edit_message(
             content="You left the scenario.",
             embed=create_scenario_embed(self.profile),
             files=[],
             view=self
         )
-
-    async def on_back_button_clicked(self, interaction: discord.Interaction):
-        self.remove_back_button()
-        self.remove_stage_two_buttons()
-        self.add_stage_one_buttons()
-
-        await interaction.response.edit_message(files=[], view=self)
 
 
 class ScenarioInteractionHelper:

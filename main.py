@@ -7,6 +7,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from api.fastapi import router
+from views.main_menu_view import MainMenuView
 
 load_dotenv()
 
@@ -36,6 +37,8 @@ class DaFarmz(commands.Bot):
         logger.info(
             f"{self.user} is ready..."
         )
+
+        self.add_view(MainMenuView())
 
 
 bot = DaFarmz()

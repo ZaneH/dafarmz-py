@@ -4,13 +4,14 @@ from images.render import render_farm
 from models.plots import FarmModel
 
 from models.users import UserModel
-from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_profile_embed, create_shop_embed
+from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_profile_embed, create_scenario_embed, create_shop_embed
 from utils.emoji_map import EMOJI_MAP
 from views.challenges_view import ChallengesView
 from views.command_center_view import CommandCenterView
 from views.farm_view import FarmView
 from views.profile_view import ProfileView
 from views.robot_hq_view import RobotHQView
+from views.scenario_view import ScenarioView
 from views.shop_view import ShopView
 from views.submenu_view import SubmenuView
 
@@ -19,13 +20,14 @@ class MainMenuView(discord.ui.View):
     async def on_timeout(self):
         await self.message.edit(view=None)
 
-    def __init__(self, timeout=120):
+    def __init__(self, timeout=None):
         super().__init__(timeout=timeout)
 
         # -- Categories --
         self.command_center_button = discord.ui.Button(
             style=discord.ButtonStyle.blurple,
             label="Command Center",
+            custom_id="command_center",
             row=0,
         )
         self.command_center_button.callback = self.on_command_center_button_clicked
@@ -34,6 +36,7 @@ class MainMenuView(discord.ui.View):
         self.robot_hq_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
             label="Robot HQ",
+            custom_id="robot_hq",
             row=1,
         )
         self.robot_hq_button.callback = self.on_robot_hq_button_clicked
@@ -42,6 +45,7 @@ class MainMenuView(discord.ui.View):
         self.bunker_actions_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
             label="Bunker Actions",
+            custom_id="bunker_actions",
             row=2,
         )
         self.bunker_actions_button.callback = self.on_bunker_actions_clicked
@@ -54,6 +58,7 @@ class MainMenuView(discord.ui.View):
         self.help_button = discord.ui.Button(
             style=discord.ButtonStyle.blurple,
             label="Help (Command List)",
+            custom_id="help_command_list",
             row=0,
         )
         self.help_button.callback = self.on_help_button_clicked
@@ -62,32 +67,36 @@ class MainMenuView(discord.ui.View):
         self.profile_button = discord.ui.Button(
             style=discord.ButtonStyle.blurple,
             label="Profile",
+            custom_id="profile",
             row=0,
         )
         self.profile_button.callback = self.on_profile_button_clicked
         self.add_item(self.profile_button)
 
-        self.about_button = discord.ui.Button(
-            style=discord.ButtonStyle.blurple,
-            label="About",
-            row=0,
-        )
-        self.about_button.callback = self.on_help_button_clicked
-        self.add_item(self.about_button)
-
         self.challenges_button = discord.ui.Button(
             style=discord.ButtonStyle.blurple,
             label="Challenges",
+            custom_id="challenges",
             row=0,
         )
         self.challenges_button.callback = self.on_challenges_button_clicked
         self.add_item(self.challenges_button)
+
+        self.about_button = discord.ui.Button(
+            style=discord.ButtonStyle.blurple,
+            label="About",
+            custom_id="about",
+            row=0,
+        )
+        self.about_button.callback = self.on_help_button_clicked
+        self.add_item(self.about_button)
 
         # Robot HQ Buttons
         # Farming, explore, fish, battle
         self.farm_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
             label="Farm",
+            custom_id="farm",
             row=1,
         )
         self.farm_button.callback = self.on_farm_button_clicked
@@ -96,14 +105,16 @@ class MainMenuView(discord.ui.View):
         self.explore_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
             label="Explore",
+            custom_id="explore",
             row=1,
         )
-        self.explore_button.callback = self.on_bunker_actions_clicked
+        self.explore_button.callback = self.on_explore_button_clicked
         self.add_item(self.explore_button)
 
         self.fish_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
             label="Fish",
+            custom_id="fish",
             row=1,
         )
         self.fish_button.callback = self.on_robot_hq_button_clicked
@@ -112,6 +123,7 @@ class MainMenuView(discord.ui.View):
         self.battle_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
             label="Battle",
+            custom_id="battle",
             row=1,
         )
         self.battle_button.callback = self.on_robot_hq_button_clicked
@@ -122,6 +134,7 @@ class MainMenuView(discord.ui.View):
         self.shop_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
             label="Shop",
+            custom_id="shop",
             row=2,
         )
         self.shop_button.callback = self.on_shop_button_clicked
@@ -130,22 +143,25 @@ class MainMenuView(discord.ui.View):
         self.craft_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
             label="Craft",
+            custom_id="craft",
             row=2,
         )
         self.craft_button.callback = self.on_robot_hq_button_clicked
         self.add_item(self.craft_button)
 
-        self.eat_button = discord.ui.Button(
+        self.inventory_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
-            label="Eat",
+            label="Inventory",
+            custom_id="inventory",
             row=2,
         )
-        self.eat_button.callback = self.on_robot_hq_button_clicked
-        self.add_item(self.eat_button)
+        self.inventory_button.callback = self.on_robot_hq_button_clicked
+        self.add_item(self.inventory_button)
 
         self.upgrade_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
             label="Upgrade",
+            custom_id="upgrade",
             row=2,
         )
         self.upgrade_button.callback = self.on_robot_hq_button_clicked
@@ -177,7 +193,17 @@ class MainMenuView(discord.ui.View):
         await interaction.response.defer()
 
     async def on_bunker_actions_clicked(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Explore button clicked!", ephemeral=True)
+        pass
+
+    async def on_explore_button_clicked(self, interaction: discord.Interaction):
+        profile = await UserModel.find_by_discord_id(interaction.user.id)
+        scenario_view = ScenarioView(profile)
+        await interaction.message.edit(
+            embed=create_scenario_embed(profile),
+            files=[],
+            view=scenario_view
+        )
+        await interaction.response.defer()
 
     async def on_help_button_clicked(self, interaction: discord.Interaction):
         back_view = SubmenuView()

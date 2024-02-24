@@ -26,3 +26,6 @@ class SubmenuView(discord.ui.View):
             files=[],
             attachments=[]
         )
+
+    def readd_back_button(self):
+        self.add_item(self.back_button)

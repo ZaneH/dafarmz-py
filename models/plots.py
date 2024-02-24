@@ -133,10 +133,13 @@ class PlotItem(BaseModel):
         else:
             return 0
 
-        time_per_yield = self.data.grow_time_hr * 3600
-        time_elapsed = time_since_last_harvest / time_per_yield
+        time_per_yield_s = self.data.grow_time_hr * 3600
+        time_elapsed_s = time_since_last_harvest / time_per_yield_s
 
-        return int(time_elapsed)
+        # BUG: There's a bug here where the stage is not being calculated correctly
+        print(f"Time elapsed for {self.key}: {time_elapsed_s}")
+
+        return int(time_elapsed_s)
 
     def get_image(self):
         """

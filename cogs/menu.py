@@ -7,25 +7,27 @@ from views.main_menu_view import MainMenuView
 def create_main_menu_embed():
     embed = discord.Embed(
         title="Main Menu",
-        description="""Welcome to DaFarmz! Your future farming adventure begins here.
+        description="""Welcome to DaFarmz!
 
-__Main Menu__:
-- Plant: Grow futuristic crops.
-- Harvest: Collect your yield.
-- Explore: Discover new biomes.
+__Command Center__:
+- Help: Get a list of useful commands.
+- Profile: View and customize your profile.
+- Challenges: Complete for rewards.
+- About: Learn about DaFarmz.
 
-__Dashboard__:
-- Profile: View stats and inventory.
-- Quests: Complete for rewards.
+__Robot HQ__:
+- Farm: Manage your farms.
+- Explore: Discover new lands and collect materials.
+- Fish: Catch aquatic creatures and loot.
+- Battle: Fight for glory and gold.
 
-__Community__:
-- Vote: Earn rewards by supporting us.
+__Bunker Actions__:
+- Shop: Buy and sell items.
+- Craft: Create new upgrades, tools, and weaponry.
+- Inventory: Manage all of your items.
+- Upgrade: Improve your bunker and its facilities.
 
-__Commands__:
-- /help: Get assistance.
-- /about: Learn about DaFarmz.
-
-Adventure awaits in every seed and horizon. Command your farm into the future.
+*Command your farm into the future.*
 """,
         color=discord.Color.blurple()
     )
