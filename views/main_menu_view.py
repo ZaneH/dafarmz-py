@@ -17,9 +17,6 @@ from views.submenu_view import SubmenuView
 
 
 class MainMenuView(discord.ui.View):
-    async def on_timeout(self):
-        await self.message.edit(view=None)
-
     def __init__(self, timeout=None):
         super().__init__(timeout=timeout)
 
@@ -34,7 +31,7 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.command_center_button)
 
         self.robot_hq_button = discord.ui.Button(
-            style=discord.ButtonStyle.success,
+            style=discord.ButtonStyle.secondary,
             label="Robot HQ",
             custom_id="robot_hq",
             row=1,
@@ -43,7 +40,7 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.robot_hq_button)
 
         self.bunker_actions_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary,
+            style=discord.ButtonStyle.success,
             label="Bunker Actions",
             custom_id="bunker_actions",
             row=2,
@@ -94,7 +91,7 @@ class MainMenuView(discord.ui.View):
         # Robot HQ Buttons
         # Farming, explore, fish, battle
         self.farm_button = discord.ui.Button(
-            style=discord.ButtonStyle.success,
+            style=discord.ButtonStyle.secondary,
             label="Farm",
             custom_id="farm",
             row=1,
@@ -103,7 +100,7 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.farm_button)
 
         self.explore_button = discord.ui.Button(
-            style=discord.ButtonStyle.success,
+            style=discord.ButtonStyle.secondary,
             label="Explore",
             custom_id="explore",
             row=1,
@@ -112,7 +109,7 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.explore_button)
 
         self.fish_button = discord.ui.Button(
-            style=discord.ButtonStyle.success,
+            style=discord.ButtonStyle.secondary,
             label="Fish",
             custom_id="fish",
             row=1,
@@ -121,7 +118,7 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.fish_button)
 
         self.battle_button = discord.ui.Button(
-            style=discord.ButtonStyle.success,
+            style=discord.ButtonStyle.secondary,
             label="Battle",
             custom_id="battle",
             row=1,
@@ -132,7 +129,7 @@ class MainMenuView(discord.ui.View):
         # Bunker Buttons
         # Shop, craft, eat, upgrade, inventory
         self.shop_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary,
+            style=discord.ButtonStyle.success,
             label="Shop",
             custom_id="shop",
             row=2,
@@ -141,7 +138,7 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.shop_button)
 
         self.craft_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary,
+            style=discord.ButtonStyle.success,
             label="Craft",
             custom_id="craft",
             row=2,
@@ -150,7 +147,7 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.craft_button)
 
         self.inventory_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary,
+            style=discord.ButtonStyle.success,
             label="Inventory",
             custom_id="inventory",
             row=2,
@@ -159,7 +156,7 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.inventory_button)
 
         self.upgrade_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary,
+            style=discord.ButtonStyle.success,
             label="Upgrade",
             custom_id="upgrade",
             row=2,

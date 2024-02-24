@@ -14,22 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 class ScenarioView(SubmenuView):
-    async def on_timeout(self):
-        await self.message.edit(
-            view=None,
-            content="",
-            files=[await render_scenario(
-                self.selected_scenario.environment,
-                self.selected_scenario.plot
-            )],
-            attachments=[]
-        )
-
-    def __init__(self, profile: UserModel | None = None, timeout=120):
+    def __init__(self, profile: UserModel | None = None, timeout=None):
         super().__init__(timeout=timeout)
 
         self.selected_scenario: ScenarioModel = None
-        self.profile = profile
+        self.profile = profile  # User profile
         self.explore_button = None  # Go exploring
         self.select_button = None  # Select scenario
         self.next_button = None  # Next scenario
@@ -45,6 +34,7 @@ class ScenarioView(SubmenuView):
         self.explore_button = discord.ui.Button(
             style=discord.ButtonStyle.primary,
             label="Explore",
+            custom_id="explore",
             row=1,
         )
         self.explore_button.callback = self.on_explore_button_clicked
@@ -58,6 +48,7 @@ class ScenarioView(SubmenuView):
         self.select_button = discord.ui.Button(
             style=discord.ButtonStyle.primary,
             label="Select",
+            custom_id="select",
             row=1,
         )
         self.select_button.callback = self.on_select_button_clicked
@@ -65,6 +56,7 @@ class ScenarioView(SubmenuView):
         self.next_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
             label="Next",
+            custom_id="next",
             row=1,
         )
         self.next_button.callback = self.on_explore_button_clicked
@@ -254,49 +246,64 @@ class ScenarioInteractionHelper:
 
     def setup_buttons(self):
         self.up_left = discord.ui.Button(
-            style=discord.ButtonStyle.primary, emoji="↖️", row=0)
+            style=discord.ButtonStyle.primary, emoji="↖️", row=0
+        )
         self.up_left.custom_id = "up_left"
         self.up_left.callback = self.on_move_button_clicked
         self.left = discord.ui.Button(
-            style=discord.ButtonStyle.primary, emoji="⬅️", row=1)
+            style=discord.ButtonStyle.primary, emoji="⬅️", row=1
+        )
         self.left.custom_id = "left"
         self.left.callback = self.on_move_button_clicked
         self.down_left = discord.ui.Button(
-            style=discord.ButtonStyle.primary, emoji="↙️", row=2)
+            style=discord.ButtonStyle.primary, emoji="↙️", row=2
+        )
         self.down_left.custom_id = "down_left"
         self.down_left.callback = self.on_move_button_clicked
         self.up = discord.ui.Button(
-            style=discord.ButtonStyle.primary, emoji="⬆️", row=0)
+            style=discord.ButtonStyle.primary, emoji="⬆️", row=0
+        )
         self.up.custom_id = "up"
         self.up.callback = self.on_move_button_clicked
         self.interact = discord.ui.Button(
-            style=discord.ButtonStyle.secondary, emoji="✋", row=1)
+            style=discord.ButtonStyle.secondary, emoji="✋", row=1
+        )
         self.interact.callback = self.on_interact_button_clicked
         self.down = discord.ui.Button(
-            style=discord.ButtonStyle.primary, emoji="⬇️", row=2)
+            style=discord.ButtonStyle.primary, emoji="⬇️", row=2
+        )
         self.down.custom_id = "down"
         self.down.callback = self.on_move_button_clicked
         self.up_right = discord.ui.Button(
-            style=discord.ButtonStyle.primary, emoji="↗️", row=0)
+            style=discord.ButtonStyle.primary, emoji="↗️", row=0
+        )
         self.up_right.custom_id = "up_right"
         self.up_right.callback = self.on_move_button_clicked
         self.right = discord.ui.Button(
-            style=discord.ButtonStyle.primary, emoji="➡️", row=1)
+            style=discord.ButtonStyle.primary, emoji="➡️", row=1
+        )
         self.right.custom_id = "right"
         self.right.callback = self.on_move_button_clicked
         self.down_right = discord.ui.Button(
-            style=discord.ButtonStyle.primary, emoji="↘️", row=2)
+            style=discord.ButtonStyle.primary, emoji="↘️", row=2
+        )
         self.down_right.custom_id = "down_right"
         self.down_right.callback = self.on_move_button_clicked
 
         self.exit_button = discord.ui.Button(
-            style=discord.ButtonStyle.danger, label="Exit", row=0)
+            style=discord.ButtonStyle.danger, label="Exit", row=0,
+            custom_id="exit"
+        )
         self.exit_button.callback = self.on_exit_button_clicked
         self.eat_button = discord.ui.Button(
-            style=discord.ButtonStyle.green, label="Eat", row=1)
+            style=discord.ButtonStyle.green, label="Eat", row=1,
+            custom_id="eat"
+        )
         self.eat_button.callback = self.on_eat_button_clicked
         self.next_button = discord.ui.Button(
-            style=discord.ButtonStyle.secondary, label="Next", row=2)
+            style=discord.ButtonStyle.secondary, label="Next", row=2,
+            custom_id="next_2"
+        )
         self.next_button.callback = self.on_next_button_clicked
 
     async def on_exit_button_clicked(self, interaction: discord.Interaction):

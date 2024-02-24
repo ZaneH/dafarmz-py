@@ -14,15 +14,10 @@ class ChallengesView(SubmenuView):
     select a challenge, accept a challenge, view their progress, and claim rewards.
     Triggered with /challenges
     """
-    async def on_timeout(self) -> None:
-        await self.message.edit(
-            content="",
-            view=None
-        )
 
     def create_challenge_option_select(self):
         selection_options = []
-        for i, option in enumerate(self.challenges.options):
+        for i, option in enumerate(getattr(self.challenges, "options", {})):
             selection_options.append(discord.SelectOption(
                 label=option.description,
                 value=str(i)
@@ -30,6 +25,7 @@ class ChallengesView(SubmenuView):
 
         select = discord.ui.Select(
             placeholder="Select a challenge",
+            custom_id="challenge_select",
             row=1,
             options=selection_options
         )
@@ -37,32 +33,35 @@ class ChallengesView(SubmenuView):
         select.callback = self.on_challenge_option_selected
         return select
 
-    def __init__(self, profile: UserModel, timeout=120, **kwargs):
+    def __init__(self, profile: UserModel = None, timeout=None, **kwargs):
         super().__init__(timeout=timeout, **kwargs)
 
         self.profile = profile
-        self.challenges = profile.challenges
+        self.challenges = profile.challenges if profile else None
 
         self.selected_option = None
         self.challenge_option_select = self.create_challenge_option_select()
-        if len(self.challenges.options) > 0:
+        if self.challenges and len(self.challenges.options) > 0:
             self.add_item(self.challenge_option_select)
 
         self.accept_button = discord.ui.Button(
             style=discord.ButtonStyle.primary,
             label="Accept",
+            custom_id="accept_challenge",
             row=4,
         )
 
         self.claim_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
             label="Claim",
+            custom_id="claim_challenge",
             row=4,
         )
 
         self.refresh_button = discord.ui.Button(
             style=discord.ButtonStyle.danger,
             label="Refresh",
+            custom_id="refresh_challenges",
             row=4,
         )
 
@@ -70,10 +69,11 @@ class ChallengesView(SubmenuView):
         self.claim_button.callback = self.on_claim_button_clicked
         self.refresh_button.callback = self.on_refresh_button_clicked
 
-        can_refresh = (datetime.utcnow(
-        ) - self.profile.challenges.last_refreshed_at).total_seconds() > 86400
-        if can_refresh:
-            self.add_item(self.refresh_button)
+        if self.challenges:
+            can_refresh = (datetime.utcnow(
+            ) - self.challenges.last_refreshed_at).total_seconds() > 86400
+            if can_refresh:
+                self.add_item(self.refresh_button)
 
     async def on_challenge_option_selected(self, interaction: discord.Interaction):
         self.remove_item(self.refresh_button)

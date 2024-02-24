@@ -10,7 +10,7 @@ class ChooseSeedView(discord.ui.View):
         await self.message.edit("Selection timed out.", view=None)
 
     def __init__(self):
-        super().__init__(timeout=120)
+        super().__init__(timeout=None)
 
         self.chose_seed_callback = None
 
@@ -19,6 +19,7 @@ class ChooseSeedView(discord.ui.View):
 
         self.seed_select = discord.ui.Select(
             placeholder="Choose a plant",
+            custom_id="seed_select",
             options=[
                 discord.SelectOption(
                     label=plant.name,
@@ -39,6 +40,3 @@ class ChooseSeedView(discord.ui.View):
             await self.chose_seed_callback(self.selected_plant, self)
 
         await interaction.response.defer()
-
-    async def on_timeout(self):
-        await self.message.edit("Selection timed out.", view=None)

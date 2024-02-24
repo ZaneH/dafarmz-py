@@ -2,7 +2,7 @@ import discord
 
 from db.shop_data import ShopData
 from images.render import render_farm
-from models.plots import PlotModel
+from models.plots import FarmModel, PlotModel
 from models.users import UserModel
 from utils.embeds import create_farm_embed
 from utils.emoji_map import EMOJI_MAP
@@ -17,27 +17,35 @@ class FarmView(SubmenuView):
     and upgrade their farm. More features will be added in the future.
     Triggered with /farm
     """
-    async def on_timeout(self):
-        await self.message.edit(
-            content="",
-            view=None
-        )
 
-    def __init__(self, farm: PlotModel, farm_owner: discord.User, timeout=120, **kwargs):
+    def __init__(self, farm: FarmModel = None, farm_owner: discord.User = None, timeout=None, **kwargs):
         super().__init__(timeout=timeout, **kwargs)
 
         self.farm = farm
         self.discord_user = farm_owner
+        self.is_at_stage_one = True
 
         self.seed_select = None
         self.plant_button = discord.ui.Button(
-            label="Plant", style=discord.ButtonStyle.primary, row=1, emoji=EMOJI_MAP["emote:potted"]
+            label="Plant",
+            custom_id="plant",
+            style=discord.ButtonStyle.primary,
+            row=1,
+            emoji=EMOJI_MAP["emote:potted"]
         )
         self.harvest_button = discord.ui.Button(
-            label="Harvest", style=discord.ButtonStyle.green, row=1, emoji=EMOJI_MAP["tool:harvest"]
+            label="Harvest",
+            custom_id="harvest",
+            style=discord.ButtonStyle.green,
+            row=1,
+            emoji=EMOJI_MAP["tool:harvest"]
         )
         self.upgrade_button = discord.ui.Button(
-            label="Upgrade", style=discord.ButtonStyle.secondary, row=1, emoji=EMOJI_MAP["ui:upgrade"]
+            label="Upgrade",
+            custom_id="upgrade",
+            style=discord.ButtonStyle.secondary,
+            row=1,
+            emoji=EMOJI_MAP["ui:upgrade"]
         )
 
         self.plant_button.callback = self.on_plant_clicked
@@ -55,11 +63,13 @@ class FarmView(SubmenuView):
         self.numer_dropdown = None
 
     def remove_stage_one_buttons(self):
+        self.is_at_stage_one = False
         self.remove_item(self.plant_button)
         self.remove_item(self.harvest_button)
         self.remove_item(self.upgrade_button)
 
     def add_stage_one_buttons(self):
+        self.is_at_stage_one = True
         self.add_item(self.plant_button)
         self.add_item(self.harvest_button)
         self.add_item(self.upgrade_button)
@@ -73,6 +83,7 @@ class FarmView(SubmenuView):
 
         self.seed_select = discord.ui.Select(
             placeholder="Choose a plant seed",
+            custom_id="seed_select",
             row=1,
             options=[
                 discord.SelectOption(
@@ -134,6 +145,7 @@ class FarmView(SubmenuView):
 
         self.letter_dropdown = discord.ui.Select(
             placeholder="Choose a letter",
+            custom_id="letter",
             row=1,
             options=[
                 discord.SelectOption(
@@ -146,6 +158,7 @@ class FarmView(SubmenuView):
 
         self.numer_dropdown = discord.ui.Select(
             placeholder="Choose a number",
+            custom_id="number",
             row=2,
             options=[
                 discord.SelectOption(
@@ -206,7 +219,7 @@ class FarmView(SubmenuView):
         else:
             await interaction.response.defer()
 
-    async def on_select_plot_letter(self, interaction):
+    async def on_select_plot_letter(self, interaction: discord.Interaction):
         for option in self.letter_dropdown.options:
             if option.value == interaction.data["values"][0]:
                 option.default = True
@@ -215,7 +228,7 @@ class FarmView(SubmenuView):
 
         await self.check_if_plot_specified(interaction, "letter")
 
-    async def on_select_plot_number(self, interaction):
+    async def on_select_plot_number(self, interaction: discord.Interaction):
         for option in self.letter_dropdown.options:
             if option.value == interaction.data["values"][0]:
                 option.default = True
@@ -224,7 +237,10 @@ class FarmView(SubmenuView):
 
         await self.check_if_plot_specified(interaction, "number")
 
-    async def on_back_clicked(self, interaction: discord.Interaction):
+    async def on_back_button_clicked(self, interaction: discord.Interaction):
+        if self.is_at_stage_one:
+            return await super().on_back_button_clicked(interaction)
+
         self.remove_item(self.letter_dropdown)
         self.remove_item(self.numer_dropdown)
         self.remove_item(self.seed_select)
