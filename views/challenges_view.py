@@ -5,9 +5,10 @@ import discord
 from models.users import UserModel
 from utils.challenges import is_challenge_completed
 from utils.embeds import create_embed_for_challenges
+from views.submenu_view import SubmenuView
 
 
-class ChallengesView(discord.ui.View):
+class ChallengesView(SubmenuView):
     """
     A view that allows a user to view their challenge, refresh their challenges,
     select a challenge, accept a challenge, view their progress, and claim rewards.
@@ -36,8 +37,8 @@ class ChallengesView(discord.ui.View):
         select.callback = self.on_challenge_option_selected
         return select
 
-    def __init__(self, profile: UserModel, timeout=120):
-        super().__init__(timeout=timeout)
+    def __init__(self, profile: UserModel, timeout=120, **kwargs):
+        super().__init__(timeout=timeout, **kwargs)
 
         self.profile = profile
         self.challenges = profile.challenges
@@ -65,17 +66,9 @@ class ChallengesView(discord.ui.View):
             row=4,
         )
 
-        self.back_button = discord.ui.Button(
-            style=discord.ButtonStyle.blurple,
-            label="←",
-            row=4,
-        )
-
         self.accept_button.callback = self.on_accept_button_clicked
         self.claim_button.callback = self.on_claim_button_clicked
         self.refresh_button.callback = self.on_refresh_button_clicked
-        self.back_button.callback = self.on_back_button_clicked
-        self.add_item(self.back_button)
 
         can_refresh = (datetime.utcnow(
         ) - self.profile.challenges.last_refreshed_at).total_seconds() > 86400
@@ -213,14 +206,3 @@ class ChallengesView(discord.ui.View):
             )
 
             await interaction.response.defer()
-
-    async def on_back_button_clicked(self, interaction: discord.Interaction):
-        from cogs.menu import create_main_menu_embed
-        from views.main_menu_view import MainMenuView
-        main_menu = MainMenuView()
-        await interaction.message.edit(
-            embed=create_main_menu_embed(),
-            view=main_menu
-        )
-
-        await interaction.response.defer()

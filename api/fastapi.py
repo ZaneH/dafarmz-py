@@ -45,10 +45,12 @@ async def topgg_webhook(
             f"User {user_id} not found for top.gg vote")
         return {"success": False}
 
+    bonus_coins = 500
+
     if isWeekend:
-        user.balance += 1000
-    else:
-        user.balance += 500
+        bonus_coins *= 2
+
+    user.balance += bonus_coins
     await user.save()
 
     logger.info(

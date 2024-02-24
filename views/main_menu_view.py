@@ -4,6 +4,9 @@ import discord
 from models.users import UserModel
 from utils.embeds import create_embed_for_challenges, create_profile_embed
 from views.challenges_view import ChallengesView
+from views.command_center_view import CommandCenterView
+from views.profile_view import ProfileView
+from views.robot_hq_view import RobotHQView
 
 
 class MainMenuView(discord.ui.View):
@@ -151,10 +154,14 @@ class MainMenuView(discord.ui.View):
         self.add_item(self.vote_button)
 
     async def on_command_center_button_clicked(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Farm button clicked!", ephemeral=True)
+        command_center = CommandCenterView()
+        await interaction.message.edit(embed=None, view=command_center)
+        await interaction.response.defer()
 
     async def on_robot_hq_button_clicked(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Shop button clicked!", ephemeral=True)
+        robot_hq = RobotHQView()
+        await interaction.message.edit(embed=None, view=robot_hq)
+        await interaction.response.defer()
 
     async def on_bunker_actions_clicked(self, interaction: discord.Interaction):
         await interaction.response.send_message("Explore button clicked!", ephemeral=True)
@@ -164,7 +171,7 @@ class MainMenuView(discord.ui.View):
 
     async def on_challenges_button_clicked(self, interaction: discord.Interaction):
         user = await UserModel.find_by_discord_id(interaction.user.id)
-        challenges_view = ChallengesView(user)
+        challenges_view = ChallengesView(user, back_button_row=4)
         embed = create_embed_for_challenges(
             interaction.user.display_name, user.challenges)
         await interaction.message.edit(embed=embed, view=challenges_view)
@@ -173,9 +180,10 @@ class MainMenuView(discord.ui.View):
     async def on_profile_button_clicked(self, interaction: discord.Interaction):
         user = await UserModel.find_by_discord_id(interaction.user.id)
         embed = create_profile_embed(user, interaction.user)
+        profile_view = ProfileView()
         await interaction.message.edit(
             embed=embed,
-            view=self
+            view=profile_view
         )
 
         await interaction.response.defer()

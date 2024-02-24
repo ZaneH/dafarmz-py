@@ -196,8 +196,26 @@ def create_profile_embed(profile: UserModel, discord_user: discord.User):
 {construct_xp_progress_bar(int(xp), 8)}
 
 {random_tip}""",
-        color=discord.Color.dark_gray(),
+        color=discord.Color.embed_background(),
     )
 
     embed.set_thumbnail(url=discord_user.avatar.url)
+    return embed
+
+
+def create_stats_embed(profile: UserModel):
+    embed = discord.Embed(
+        title="Farm Statistics",
+        description=f"**Balance**: {format_currency(profile.balance)}",
+        color=discord.Color.embed_background()
+    )
+
+    harvest_conut = profile.stats.get("harvest", {}).get("count", 0)
+
+    embed.add_field(
+        name="Harvests",
+        value=f"{EMOJI_MAP['ui:reply']} {harvest_conut}",
+        inline=True
+    )
+
     return embed
