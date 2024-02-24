@@ -1,5 +1,4 @@
 import discord
-from discord.ui.item import Item
 
 from db.shop_data import ShopData
 from images.render import render_farm
@@ -9,9 +8,10 @@ from utils.embeds import create_farm_embed
 from utils.emoji_map import EMOJI_MAP
 from utils.shop import key_to_shop_item
 from utils.yields import harvest_yield_to_list
+from views.submenu_view import SubmenuView
 
 
-class FarmView(discord.ui.View):
+class FarmView(SubmenuView):
     """
     A view that allows a user to view their farm, plant a crop, harvest a crop,
     and upgrade their farm. More features will be added in the future.
@@ -23,23 +23,22 @@ class FarmView(discord.ui.View):
             view=None
         )
 
-    def __init__(self, farm: PlotModel, farm_owner: discord.User, timeout=120):
-        super().__init__(timeout=timeout)
+    def __init__(self, farm: PlotModel, farm_owner: discord.User, timeout=120, **kwargs):
+        super().__init__(timeout=timeout, **kwargs)
 
         self.farm = farm
         self.discord_user = farm_owner
 
         self.seed_select = None
         self.plant_button = discord.ui.Button(
-            label="Plant", style=discord.ButtonStyle.primary, row=0, emoji=EMOJI_MAP["emote:potted"]
+            label="Plant", style=discord.ButtonStyle.primary, row=1, emoji=EMOJI_MAP["emote:potted"]
         )
         self.harvest_button = discord.ui.Button(
-            label="Harvest", style=discord.ButtonStyle.green, row=0, emoji=EMOJI_MAP["tool:harvest"]
+            label="Harvest", style=discord.ButtonStyle.green, row=1, emoji=EMOJI_MAP["tool:harvest"]
         )
         self.upgrade_button = discord.ui.Button(
-            label="Upgrade", style=discord.ButtonStyle.secondary, row=0, emoji=EMOJI_MAP["ui:upgrade"]
+            label="Upgrade", style=discord.ButtonStyle.secondary, row=1, emoji=EMOJI_MAP["ui:upgrade"]
         )
-        self.back_button: Item = None
 
         self.plant_button.callback = self.on_plant_clicked
         self.harvest_button.callback = self.on_harvest_clicked
@@ -68,9 +67,6 @@ class FarmView(discord.ui.View):
     async def on_plant_clicked(self, interaction: discord.Interaction):
         self.remove_stage_one_buttons()
         self.remove_item(self.seed_select)
-
-        self.back_button = self.create_back_button()
-        self.add_item(self.back_button)
 
         self.shop_data = ShopData.buyable()
         seeds = [item for item in self.shop_data if "seed:" in item.key]
@@ -116,14 +112,13 @@ class FarmView(discord.ui.View):
 
         formatted_yield = harvest_yield_to_list(harvest_yield)
 
-        self.back_button = self.create_back_button()
-        self.add_item(self.back_button)
         self.remove_stage_one_buttons()
 
         await interaction.response.edit_message(
             content=f"You harvested your farm and earned a total of +**{xp_earned} XP**!\n\n{formatted_yield}",
             embed=create_farm_embed(self.discord_user.display_name),
             files=[await render_farm(self.farm)],
+            attachments=[],
             view=self
         )
 
@@ -202,6 +197,7 @@ class FarmView(discord.ui.View):
                 await interaction.response.edit_message(
                     content=f"You planted {self.selected_plant.name} {EMOJI_MAP.get(self.selected_plant.key, '')} on {location}!",
                     files=[await render_farm(self.farm)],
+                    attachments=[],
                     view=self,
                     embed=create_farm_embed(
                         self.discord_user.display_name
@@ -228,17 +224,9 @@ class FarmView(discord.ui.View):
 
         await self.check_if_plot_specified(interaction, "number")
 
-    def create_back_button(self):
-        back_button = discord.ui.Button(
-            label="Back", style=discord.ButtonStyle.secondary, row=4
-        )
-        back_button.callback = self.on_back_clicked
-        return back_button
-
     async def on_back_clicked(self, interaction: discord.Interaction):
         self.remove_item(self.letter_dropdown)
         self.remove_item(self.numer_dropdown)
-        self.remove_item(self.back_button)
         self.remove_item(self.seed_select)
 
         self.add_stage_one_buttons()

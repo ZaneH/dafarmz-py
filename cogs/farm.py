@@ -27,7 +27,7 @@ class Farm(commands.Cog):
 
     async def start_farm_view(
             self, ctx: discord.context.ApplicationContext, farm: PlotModel):
-        farm_view = FarmView(farm, ctx.author)
+        farm_view = FarmView(farm, ctx.author, back_button_row=0)
         await ctx.respond(
             embed=create_farm_embed(ctx.author.display_name),
             view=farm_view,

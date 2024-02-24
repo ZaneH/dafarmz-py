@@ -1,10 +1,13 @@
 
 import discord
+from images.render import render_farm
+from models.plots import FarmModel
 
 from models.users import UserModel
-from utils.embeds import create_embed_for_challenges, create_profile_embed
+from utils.embeds import create_embed_for_challenges, create_farm_embed, create_profile_embed
 from views.challenges_view import ChallengesView
 from views.command_center_view import CommandCenterView
+from views.farm_view import FarmView
 from views.profile_view import ProfileView
 from views.robot_hq_view import RobotHQView
 
@@ -84,7 +87,7 @@ class MainMenuView(discord.ui.View):
             label="Farm",
             row=1,
         )
-        self.farm_button.callback = self.on_command_center_button_clicked
+        self.farm_button.callback = self.on_farm_button_clicked
         self.add_item(self.farm_button)
 
         self.explore_button = discord.ui.Button(
@@ -156,6 +159,13 @@ class MainMenuView(discord.ui.View):
     async def on_command_center_button_clicked(self, interaction: discord.Interaction):
         command_center = CommandCenterView()
         await interaction.message.edit(embed=None, view=command_center)
+        await interaction.response.defer()
+
+    async def on_farm_button_clicked(self, interaction: discord.Interaction):
+        farm = await FarmModel.find_by_discord_id(interaction.user.id)
+        farm_view = FarmView(farm, interaction.user, back_button_row=0)
+        embed = create_farm_embed(interaction.user.display_name)
+        await interaction.message.edit(embed=embed, view=farm_view, files=[await render_farm(farm)])
         await interaction.response.defer()
 
     async def on_robot_hq_button_clicked(self, interaction: discord.Interaction):

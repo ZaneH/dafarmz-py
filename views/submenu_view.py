@@ -19,4 +19,9 @@ class SubmenuView(discord.ui.View):
     async def on_back_button_clicked(self, interaction: discord.Interaction):
         from cogs.menu import create_main_menu_embed
         from views.main_menu_view import MainMenuView
-        await interaction.response.edit_message(embed=create_main_menu_embed(), view=MainMenuView())
+        await interaction.response.edit_message(
+            embed=create_main_menu_embed(),
+            view=MainMenuView(),
+            files=[],
+            attachments=[]
+        )

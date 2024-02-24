@@ -47,7 +47,6 @@ def create_farm_embed(farm_owner_name: str):
         color=discord.Color.embed_background()
     )
 
-    embed.set_image(url="attachment://farm.png")
     return embed
 
 
