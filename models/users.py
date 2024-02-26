@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from bson import ObjectId
 from pydantic import BaseModel, Field
@@ -17,14 +17,15 @@ logger = logging.getLogger(__name__)
 COLLECTION_NAME = "users"
 
 
-class RobotModel(BaseModel):
-    name: str = ""
-    max_energy: int = 0
-    energy: int = 0
-    attack: int = 0
-    defense: int = 0
-    speed: int = 0
-    xp: int = 0
+class ConfigModel(BaseModel):
+    last_planet_id: ObjectId = ObjectId("60f3b3e3e4e508f3e3e3e3e3")
+    """The ID of the last planet the user visited. Default is Verdantia."""
+    last_biome: int = 0
+    """The index of the last biome the user visited. Default is 0."""
+
+    class Config:
+        arbitrary_types_allowed = True
+        from_attributes = True
 
 
 class UserInventoryItem(BaseModel):
@@ -57,6 +58,7 @@ class UserModel(BaseModel):
     challenges: ChallengesModel = Field(
         default_factory=ChallengesModel)
     """The user's challenges as a `ChallengesModel`."""
+    config: ConfigModel = Field(default_factory=ConfigModel)
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):

@@ -15,7 +15,7 @@ __Command Center__:
 - Challenges: Complete for rewards.
 - About: Learn about DaFarmz.
 
-__Robot HQ__:
+__Odyssey__:
 - Farm: Manage your farms.
 - Explore: Discover new lands and collect materials.
 - Fish: Catch aquatic creatures and loot.

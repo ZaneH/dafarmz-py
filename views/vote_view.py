@@ -5,10 +5,7 @@ from views.submenu_view import SubmenuView
 
 
 class VoteView(SubmenuView):
-    async def on_timeout(self):
-        return await self.message.edit(view=None)
-
-    def __init__(self, timeout=120):
+    def __init__(self, timeout=None):
         super().__init__(timeout=timeout)
 
         self.vote_button = discord.ui.Button(

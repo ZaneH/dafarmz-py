@@ -10,7 +10,10 @@ from api.fastapi import router
 from views.challenges_view import ChallengesView
 from views.farm_view import FarmView
 from views.main_menu_view import MainMenuView
+from views.planets_view import PlanetsView
+from views.sale_view import SaleView
 from views.scenario_view import ScenarioView
+from views.shop_view import ShopView
 
 load_dotenv()
 
@@ -45,6 +48,9 @@ class DaFarmz(commands.Bot):
         self.add_view(ScenarioView())
         self.add_view(FarmView())
         self.add_view(ChallengesView())
+        self.add_view(ShopView())
+        self.add_view(SaleView())
+        self.add_view(PlanetsView())
 
 
 bot = DaFarmz()

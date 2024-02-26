@@ -5,13 +5,14 @@ from views.submenu_view import SubmenuView
 
 
 class StatsView(SubmenuView):
-    def __init__(self, timeout=120, selected_stats="farm"):
+    def __init__(self, timeout=None, selected_stats="farm"):
         super().__init__(timeout=timeout)
 
         self.selected_stats = selected_stats
 
         self.farm_stats_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
+            custom_id="farm_stats",
             label="Farm",
             row=1,
         )
@@ -20,6 +21,7 @@ class StatsView(SubmenuView):
 
         self.explore_stats_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
+            custom_id="explore_stats",
             label="Explore",
             row=1,
         )

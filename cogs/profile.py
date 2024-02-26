@@ -1,20 +1,14 @@
 import logging
-import random
 
 import discord
 from discord.ext import commands
-from db.shop_data import ShopData
 
 from models.plots import PlotModel
 from models.users import UserModel
-from utils.currency import format_currency
 from utils.embeds import create_profile_embed
 from utils.emoji_map import EMOJI_MAP
-from utils.level_calculator import xp_to_level, level_to_xp, next_level_xp
-from utils.progress_bar import construct_xp_progress_bar
 from utils.shop import key_to_shop_item
 from utils.users import require_user
-from views.submenu_view import SubmenuView
 from views.vote_view import VoteView
 
 logger = logging.getLogger(__name__)
@@ -38,7 +32,8 @@ class Profile(commands.Cog):
                              balance=100, inventory={},
                              created_at=discord.utils.utcnow(), stats={
                                  "xp": 0, "harvest": {"count": 0}},
-                             challenges={})
+                             challenges={},
+                             config={})
             await user.save()
 
         return await ctx.respond("You're all set! Use `/help` to get started.")

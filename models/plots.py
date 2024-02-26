@@ -187,31 +187,9 @@ class PlotModel(BaseModel):
     """
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
     plot: Dict[str, PlotItem]
-    environment: Environment = Environment.DA_FIELDS
 
-    @classmethod
-    def generate_random(cls):
-        random_environment = random.choice(list(Environment))
-        random_plot = {}
-        for i in range(5):
-            if random.random() > 0.5:
-                random_plot[f"A{i}"] = PlotItem(
-                    key="plant:apple",
-                    data=BasePlotItemData(
-                        yields_remaining=5,
-                        last_harvested_at=datetime.utcnow(),
-                        yields={
-                            "plant:apple": YieldModel(amount=1)
-                        },
-                        grow_time_hr=2
-                    )
-                )
-
-        return cls(
-            discord_id=None,
-            plot=random_plot,
-            environment=random_environment
-        )
+    planet_id: ObjectId
+    biome: int
 
     def remove_plant(self, location: str):
         if self.plot.get(location):

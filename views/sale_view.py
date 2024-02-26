@@ -10,15 +10,13 @@ class SaleView(discord.ui.View):
     A view for buying or selling items from the shop.
     Triggered with /buy or /sell
     """
-    async def on_timeout(self):
-        await self.message.edit("Transaction ended.", view=None)
 
-    def __init__(self, shop_data, buy_or_sell="buy"):
+    def __init__(self, shop_data=[], buy_or_sell="buy", timeout=None):
         """
         A view for buying or selling items from the shop.
         """
 
-        super().__init__(timeout=60)
+        super().__init__(timeout=timeout)
 
         self.on_purchase_callback = None
 
@@ -40,6 +38,7 @@ class SaleView(discord.ui.View):
 
         self.item_type_select = discord.ui.Select(
             placeholder=f"Pick an item type...",
+            custom_id="item_type_select",
             options=[
                 discord.SelectOption(label="Seeds", value="seed"),
                 discord.SelectOption(label="Plants", value="plant"),
@@ -65,6 +64,7 @@ class SaleView(discord.ui.View):
 
         self.items_select = discord.ui.Select(
             placeholder=f"Choose from the {self.selected_category}s to {self.buy_or_sell}",
+            custom_id="items_select",
             options=[discord.SelectOption(label=item.name, value=item.key)
                      for item in self.shop_data if self.selected_category.lower() in item.key.lower()],
             min_values=1, max_values=1, row=1
@@ -93,17 +93,29 @@ class SaleView(discord.ui.View):
         self.remove_item(self.qty_confirm)
 
         self.qty_minus_five = discord.ui.Button(
-            style=discord.ButtonStyle.danger, label="-5", row=2)
+            style=discord.ButtonStyle.danger, label="-5", row=2,
+            custom_id="qty_minus_five"
+        )
         self.qty_minus_one = discord.ui.Button(
-            style=discord.ButtonStyle.danger, label="-1", row=2)
+            style=discord.ButtonStyle.danger, label="-1", row=2,
+            custom_id="qty_minus_one"
+        )
         self.qty_plus_one = discord.ui.Button(
-            style=discord.ButtonStyle.success, label="+1", row=2)
+            style=discord.ButtonStyle.success, label="+1", row=2,
+            custom_id="qty_plus_one"
+        )
         self.qty_plus_five = discord.ui.Button(
-            style=discord.ButtonStyle.success, label="+5", row=2)
+            style=discord.ButtonStyle.success, label="+5", row=2,
+            custom_id="qty_plus_five"
+        )
         self.qty_cancel = discord.ui.Button(
-            style=discord.ButtonStyle.danger, label="Cancel", row=3)
+            style=discord.ButtonStyle.danger, label="Cancel", row=3,
+            custom_id="qty_cancel"
+        )
         self.qty_confirm = discord.ui.Button(
-            style=discord.ButtonStyle.success, label="Confirm", row=3)
+            style=discord.ButtonStyle.success, label="Confirm", row=3,
+            custom_id="qty_confirm"
+        )
 
         self.qty_confirm.callback = self.confirm_purchase
         self.qty_cancel.callback = self.cancel_purchase
@@ -159,7 +171,8 @@ class SaleView(discord.ui.View):
         await interaction.response.defer()
 
     async def cancel_purchase(self, interaction):
-        await self.message.edit("Transaction cancelled.", view=None)
+        self.disable_all_items()
+        await self.message.edit("Transaction cancelled.", view=self)
 
     def update_cost_total(self):
         if self.buy_or_sell == "buy":

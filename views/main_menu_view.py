@@ -4,11 +4,12 @@ from images.render import render_farm
 from models.plots import FarmModel
 
 from models.users import UserModel
-from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_profile_embed, create_scenario_embed, create_shop_embed
+from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_planet_embed, create_profile_embed, create_scenario_embed, create_shop_embed
 from utils.emoji_map import EMOJI_MAP
 from views.challenges_view import ChallengesView
 from views.command_center_view import CommandCenterView
 from views.farm_view import FarmView
+from views.planets_view import PlanetsView
 from views.profile_view import ProfileView
 from views.robot_hq_view import RobotHQView
 from views.scenario_view import ScenarioView
@@ -30,14 +31,14 @@ class MainMenuView(discord.ui.View):
         self.command_center_button.callback = self.on_command_center_button_clicked
         self.add_item(self.command_center_button)
 
-        self.robot_hq_button = discord.ui.Button(
+        self.odyssey_button = discord.ui.Button(
             style=discord.ButtonStyle.secondary,
-            label="Robot HQ",
-            custom_id="robot_hq",
+            label="Odyssey",
+            custom_id="odyssey",
             row=1,
         )
-        self.robot_hq_button.callback = self.on_robot_hq_button_clicked
-        self.add_item(self.robot_hq_button)
+        self.odyssey_button.callback = self.on_odyssey_button_clicked
+        self.add_item(self.odyssey_button)
 
         self.bunker_actions_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
@@ -85,7 +86,7 @@ class MainMenuView(discord.ui.View):
             custom_id="about",
             row=0,
         )
-        self.about_button.callback = self.on_help_button_clicked
+        self.about_button.callback = self.on_about_button_clicked
         self.add_item(self.about_button)
 
         # Robot HQ Buttons
@@ -114,7 +115,7 @@ class MainMenuView(discord.ui.View):
             custom_id="fish",
             row=1,
         )
-        self.fish_button.callback = self.on_robot_hq_button_clicked
+        self.fish_button.callback = self.on_odyssey_button_clicked
         self.add_item(self.fish_button)
 
         self.battle_button = discord.ui.Button(
@@ -123,7 +124,7 @@ class MainMenuView(discord.ui.View):
             custom_id="battle",
             row=1,
         )
-        self.battle_button.callback = self.on_robot_hq_button_clicked
+        self.battle_button.callback = self.on_odyssey_button_clicked
         self.add_item(self.battle_button)
 
         # Bunker Buttons
@@ -143,7 +144,7 @@ class MainMenuView(discord.ui.View):
             custom_id="craft",
             row=2,
         )
-        self.craft_button.callback = self.on_robot_hq_button_clicked
+        self.craft_button.callback = self.on_odyssey_button_clicked
         self.add_item(self.craft_button)
 
         self.inventory_button = discord.ui.Button(
@@ -152,7 +153,7 @@ class MainMenuView(discord.ui.View):
             custom_id="inventory",
             row=2,
         )
-        self.inventory_button.callback = self.on_robot_hq_button_clicked
+        self.inventory_button.callback = self.on_odyssey_button_clicked
         self.add_item(self.inventory_button)
 
         self.upgrade_button = discord.ui.Button(
@@ -161,7 +162,7 @@ class MainMenuView(discord.ui.View):
             custom_id="upgrade",
             row=2,
         )
-        self.upgrade_button.callback = self.on_robot_hq_button_clicked
+        self.upgrade_button.callback = self.on_odyssey_button_clicked
         self.add_item(self.upgrade_button)
 
         self.vote_button = discord.ui.Button(
@@ -184,9 +185,20 @@ class MainMenuView(discord.ui.View):
         await interaction.message.edit(embed=embed, view=farm_view, files=[await render_farm(farm)])
         await interaction.response.defer()
 
-    async def on_robot_hq_button_clicked(self, interaction: discord.Interaction):
-        robot_hq = RobotHQView()
-        await interaction.message.edit(embed=None, view=robot_hq)
+    async def on_odyssey_button_clicked(self, interaction: discord.Interaction):
+        planets_view = PlanetsView()
+        page = planets_view.pagination.get_page()
+        if len(page) == 0:
+            return await interaction.response.edit_message(
+                content="No planets available.")
+
+        embed = create_planet_embed(page[0])
+        await interaction.message.edit(
+            embed=embed,
+            view=planets_view,
+            files=[],
+            attachments=[]
+        )
         await interaction.response.defer()
 
     async def on_bunker_actions_clicked(self, interaction: discord.Interaction):
@@ -237,3 +249,6 @@ class MainMenuView(discord.ui.View):
             files=[],
             attachments=[]
         )
+
+    async def on_about_button_clicked(self, interaction: discord.Interaction):
+        pass
