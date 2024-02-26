@@ -308,11 +308,14 @@ def create_command_list_embed():
     return embed
 
 
-def create_planet_embed(planet: PlanetModel):
+def create_planet_embed(planet: PlanetModel, file: discord.File = None):
     embed = discord.Embed(
         title=f"{planet.name}",
         description=f"{planet.description}",
         color=discord.Color.embed_background()
     )
+
+    if file:
+        embed.set_thumbnail(url=f"attachment://{file.filename.split('/')[-1]}")
 
     return embed

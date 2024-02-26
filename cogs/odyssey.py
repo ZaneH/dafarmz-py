@@ -7,9 +7,22 @@ from utils.embeds import create_planet_embed
 from views.planets_view import PlanetsView
 
 
-class Planets(discord.Cog):
+class Odyssey(discord.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    async def _odyssey(self, ctx: discord.context.ApplicationContext):
+        planets_view = PlanetsView()
+        (embed, file) = planets_view.create_embed_and_file()
+        await ctx.respond(view=planets_view, embed=embed, file=file)
+
+    @commands.slash_command(name="odyssey", description="View information about each planet in the game.")
+    @commands.cooldown(3, 5, commands.BucketType.user)
+    async def odyssey(self, ctx: discord.context.ApplicationContext):
+        """
+        /odyssey - View information about each planet in the game.
+        """
+        await self._odyssey(ctx)
 
     @commands.slash_command(name="planets", description="View information about each planet in the game.")
     @commands.cooldown(3, 5, commands.BucketType.user)
@@ -17,15 +30,7 @@ class Planets(discord.Cog):
         """
         /planets - View information about each planet in the game.
         """
-        planets_view = PlanetsView()
-        page = planets_view.pagination.get_page()
-        if len(page) == 0:
-            return await ctx.send("No planets found.")
-
-        return await ctx.send(
-            embed=create_planet_embed(page[0]),
-            view=planets_view
-        )
+        await self._odyssey(ctx)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -33,4 +38,4 @@ class Planets(discord.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Planets(bot))
+    bot.add_cog(Odyssey(bot))

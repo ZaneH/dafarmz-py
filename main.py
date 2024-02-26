@@ -57,29 +57,6 @@ bot = DaFarmz()
 app = FastAPI()
 app.include_router(router)
 
-
-@bot.command(hidden=True)
-@commands.is_owner()
-async def load(ctx, extension):
-    bot.load_extension(f"cogs.{extension}")
-    await ctx.send("Done")
-
-
-@bot.command(hidden=True)
-@commands.is_owner()
-async def unload(ctx, extension):
-    bot.unload_extension(f"cogs.{extension}")
-    await ctx.send("Done")
-
-
-@bot.command(hidden=True)
-@commands.is_owner()
-async def reload(ctx, extension):
-    bot.unload_extension(f"cogs.{extension}")
-    bot.load_extension(f"cogs.{extension}")
-    await ctx.send("Done")
-
-
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
         bot.load_extension(f"cogs.{filename[:-3]}")

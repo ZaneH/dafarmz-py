@@ -227,6 +227,7 @@ class Shop(commands.Cog):
         description="The name of the item to buy", required=False
     )): # type: ignore
     # fmt: on
+        # TODO: Put file and embed into a function within a view for /info
         item = name_to_shop_item(name)
         image_path = item.get_ripe_image_path() if item else None
         file = discord.File(

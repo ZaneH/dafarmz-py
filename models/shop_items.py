@@ -7,7 +7,7 @@ from db.database import Database
 from models.pyobjectid import PyObjectId
 from models.yields import YieldModel
 from utils.environments import Environment
-from utils.plant_state import build_image_path, get_ripe_image
+from utils.plant_state import build_crop_image_path, get_ripe_image
 
 COLLECTION_NAME = "shop"
 
@@ -81,7 +81,7 @@ class ShopItemModel(BaseModel):
         if not ripe_image_name:
             return None
 
-        return build_image_path(ripe_image_name)
+        return build_crop_image_path(ripe_image_name)
 
     class Config:
         from_attributes = True

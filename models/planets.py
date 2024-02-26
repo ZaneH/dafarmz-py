@@ -7,6 +7,10 @@ from db.database import Database
 COLLECTION_NAME = "planets"
 
 
+def build_biome_image_path(image_name: str) -> str:
+    return f"./images/files/new/plots/planets/{image_name}"
+
+
 class PlanetEnvironmentModel(BaseModel):
     """
     The model for an environment on a planet.

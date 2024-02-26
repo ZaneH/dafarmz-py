@@ -92,5 +92,5 @@ def get_ripe_image(plant_key: str) -> str:
         return lifecycle[-1]
 
 
-def build_image_path(image_path: str) -> str:
+def build_crop_image_path(image_path: str) -> str:
     return f"./images/files/new/crops/{image_path}"

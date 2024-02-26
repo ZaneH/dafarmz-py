@@ -1,4 +1,5 @@
 import discord
+from models.planets import PlanetModel
 
 from utils.pagination import PaginationHelper
 from views.submenu_view import SubmenuView
@@ -9,7 +10,8 @@ class PaginationView(SubmenuView):
         super().__init__(timeout=timeout)
 
         self.page_data = data
-        self.pagination = PaginationHelper(self.page_data, per_page)
+        self.pagination = PaginationHelper[PlanetModel](
+            self.page_data, per_page)
         self.update_message_callback = None
 
         self.prev_button = discord.ui.Button(

@@ -1,6 +1,7 @@
 
 import discord
 from images.render import render_farm
+from models.planets import build_biome_image_path
 from models.plots import FarmModel
 
 from models.users import UserModel
@@ -11,7 +12,6 @@ from views.command_center_view import CommandCenterView
 from views.farm_view import FarmView
 from views.planets_view import PlanetsView
 from views.profile_view import ProfileView
-from views.robot_hq_view import RobotHQView
 from views.scenario_view import ScenarioView
 from views.shop_view import ShopView
 from views.submenu_view import SubmenuView
@@ -187,18 +187,14 @@ class MainMenuView(discord.ui.View):
 
     async def on_odyssey_button_clicked(self, interaction: discord.Interaction):
         planets_view = PlanetsView()
-        page = planets_view.pagination.get_page()
-        if len(page) == 0:
-            return await interaction.response.edit_message(
-                content="No planets available.")
+        (embed, file) = planets_view.create_embed_and_file()
 
-        embed = create_planet_embed(page[0])
         await interaction.message.edit(
             embed=embed,
             view=planets_view,
-            files=[],
-            attachments=[]
+            file=file
         )
+
         await interaction.response.defer()
 
     async def on_bunker_actions_clicked(self, interaction: discord.Interaction):
