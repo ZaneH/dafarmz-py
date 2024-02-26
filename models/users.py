@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
 from pydantic import BaseModel, Field
@@ -59,6 +59,8 @@ class UserModel(BaseModel):
         default_factory=ChallengesModel)
     """The user's challenges as a `ChallengesModel`."""
     config: ConfigModel = Field(default_factory=ConfigModel)
+    """The user's configuration as a `ConfigModel`."""
+    unlocked_planets: List[ObjectId] = []
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):

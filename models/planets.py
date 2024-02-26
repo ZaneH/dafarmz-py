@@ -1,8 +1,9 @@
 from typing import List
 from bson import ObjectId
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from db.database import Database
+from models.pyobjectid import PyObjectId
 
 COLLECTION_NAME = "planets"
 
@@ -31,6 +32,8 @@ class PlanetModel(BaseModel):
     """
     The model for a planet in the game.
     """
+    id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
+    """The ID of the planet."""
     name: str = ""
     """The name of the planet."""
     description: str = ""

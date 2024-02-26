@@ -1,5 +1,6 @@
 import random
 import discord
+from db.planets_data import PlanetsData
 
 from models.challenges import ChallengesModel
 from models.planets import PlanetModel
@@ -23,22 +24,36 @@ def create_farm_embed(farm_owner_name: str):
 
 
 def create_scenario_embed(profile: UserModel):
+    description = ""
+    for planet_id in profile.unlocked_planets:
+        planet = PlanetsData.get_planet(planet_id)
+        if planet:
+            description += f"- {planet.name}\n"
+
     embed = discord.Embed(
         title=f"Go Exploring",
+        description=f"Unlocked Planets:\n{description}",
         color=discord.Color.embed_background()
     )
 
-    embed.add_field(
-        name="Available Robots",
-        value=f"{EMOJI_MAP['ui:reply']} {get_amount_in_inventory(profile, 'item:robot')}",
-        inline=False
-    )
+    # TODO: Put something here, energy, description of the planet, requirements to unlock, rewards, etc.
+    # embed.add_field(
+    #     name="Available Robots",
+    #     value=f"{EMOJI_MAP['ui:reply']} {get_amount_in_inventory(profile, 'item:robot')}",
+    #     inline=False
+    # )
 
     return embed
 
 
-def goal_completion_percentage(progress, goal_amount):
-    """Calculate the completion percentage for a single goal."""
+def goal_completion_percentage(progress: float, goal_amount: float) -> float:
+    """
+    Calculate the completion percentage for a single goal.
+
+    :param progress: The current progress.
+    :param goal_amount: The goal amount.
+    :return: The completion percentage from 0 to 100.
+    """
     return (progress / goal_amount) * 100 if goal_amount else 0
 
 

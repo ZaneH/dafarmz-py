@@ -4,6 +4,7 @@ import logging
 from pydantic import Field
 from db.database import Database
 from models.plots import BasePlotItemData, PlotItem, PlotModel
+from models.pyobjectid import PyObjectId
 from utils.level_calculator import xp_to_level
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,13 @@ class ScenarioModel(PlotModel):
     plants, items, and other things that are available in the scenario.
     """
     plot: Dict[str, ScenarioPlotItem] = {}
+    """The plot of the scenario. Contains plot items."""
+    level_required: int = 0
+    """The level required to unlock this scenario."""
+    planet_id: Optional[PyObjectId] = None
+    """The planet ID that this scenario is on. If None, it is randomized."""
+    biome_index: int = 0
+    """The index of the biome that this scenario is on."""
 
     @classmethod
     async def find_scenarios(cls, current_xp: int):
