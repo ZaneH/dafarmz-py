@@ -77,19 +77,22 @@ class ScenarioView(SubmenuView):
         self.remove_stage_two_buttons()
         self.remove_scenario_buttons()
 
+        if not self.profile:
+            logger.warning("No profile found for user.")
+            return
+
         current_xp = self.profile.stats.get("xp", 0)
         scenarios = await ScenarioModel.find_scenarios(current_xp)
 
         self.selected_scenario = random.choice(scenarios)
-        environment = self.selected_scenario.environment
-        plot = self.selected_scenario.plot
 
         self.remove_stage_one_buttons()
 
         self.add_stage_two_buttons()
 
+        files = await self.get_files(with_cursor=False)
         await interaction.response.edit_message(
-            files=[await render_scenario(environment, plot)],
+            files=files,
             embed=create_scenario_embed(self.profile),
             attachments=[],
             view=self
@@ -112,21 +115,33 @@ class ScenarioView(SubmenuView):
         self.interaction_helper.on_next_callback = self.on_explore_button_clicked
         self.interaction_helper.on_interact_callback = self.on_interact_button_clicked
 
-        environment = self.selected_scenario.environment
-        plot = self.selected_scenario.plot
+        files = await self.get_files(with_cursor=True)
         await interaction.response.edit_message(
             content="",
-            files=[await render_scenario(environment, plot, self.interaction_helper.cursor_position)],
+            files=files,
             embed=create_scenario_embed(self.profile),
             attachments=[],
             view=self
         )
 
-    async def on_cursor_change(self, interaction: discord.Interaction):
-        environment = self.selected_scenario.environment
+    async def get_files(self, with_cursor=True):
+        planet_id = self.selected_scenario.planet_id
+        biome_index = self.selected_scenario.biome_index
+        variant_index = self.selected_scenario.variant_index
         plot = self.selected_scenario.plot
+
+        return [await render_scenario(
+            plot,
+            self.interaction_helper.cursor_position if with_cursor else None,
+            planet_id,
+            biome_index,
+            variant_index
+        )]
+
+    async def on_cursor_change(self, interaction: discord.Interaction):
+        files = await self.get_files(with_cursor=True)
         await interaction.response.edit_message(
-            files=[await render_scenario(environment, plot, self.interaction_helper.cursor_position)],
+            files=files,
             embed=create_scenario_embed(self.profile),
             attachments=[],
             view=self
@@ -173,15 +188,12 @@ class ScenarioView(SubmenuView):
                     view=self
                 )
 
+            files = await self.get_files(with_cursor=True)
             return await interaction.response.edit_message(
                 content=f"You found:\n{formatted_yield}",
                 embed=create_scenario_embed(self.profile),
                 attachments=[],
-                files=[await render_scenario(
-                    self.selected_scenario.environment,
-                    self.selected_scenario.plot,
-                    self.interaction_helper.cursor_position
-                )],
+                files=files,
                 view=self
             )
 

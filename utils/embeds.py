@@ -37,11 +37,19 @@ def create_scenario_embed(profile: UserModel):
     )
 
     # TODO: Put something here, energy, description of the planet, requirements to unlock, rewards, etc.
-    # embed.add_field(
-    #     name="Available Robots",
-    #     value=f"{EMOJI_MAP['ui:reply']} {get_amount_in_inventory(profile, 'item:robot')}",
-    #     inline=False
-    # )
+    last_planet_id = profile.config.last_planet_id
+    last_biome_index = profile.config.last_biome_index
+    planet = PlanetsData.get_planet(last_planet_id)
+    if planet:
+        biome = planet.biomes[last_biome_index]
+
+    current_selection = f"{planet.name} – {biome.name}" if planet else "None"
+
+    embed.add_field(
+        name="Current Selection",
+        value=f"{current_selection}",
+        inline=False
+    )
 
     return embed
 

@@ -72,10 +72,6 @@ class ScenarioModel(PlotModel):
     """The plot of the scenario. Contains plot items."""
     level_required: int = 0
     """The level required to unlock this scenario."""
-    planet_id: Optional[PyObjectId] = None
-    """The planet ID that this scenario is on. If None, it is randomized."""
-    biome_index: int = 0
-    """The index of the biome that this scenario is on."""
 
     @classmethod
     async def find_scenarios(cls, current_xp: int):

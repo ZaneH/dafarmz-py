@@ -1,22 +1,28 @@
 import io
+import random
 from typing import Dict, Optional
 
 import discord
+from db.planets_data import PlanetsData
 
 from images.merge import generate_image
 from images.merge import apply_cursor
 from models.plots import PlotModel, PlotItem
-from utils.environments import Environment
 
 
 async def render_farm(farm: PlotModel):
     """
-    Render a farm image.
+    Render a farm image. Uses the first variant for farms.
 
     :param farm: The farm to render.
     :return: The rendered farm image.
     """
-    image = generate_image(farm.environment, farm.plot)
+    planet_id = farm.planet_id
+    biome_index = farm.biome_index
+    variant_index = farm.variant_index
+    biome = PlanetsData.get_biome(planet_id, biome_index)
+    bg_file_name = biome.backgrounds[variant_index]
+    image = generate_image(bg_file_name, farm.plot, with_ui=True)
     with io.BytesIO() as image_binary:
         image.save(image_binary, "PNG")
         image_binary.seek(0)
@@ -25,9 +31,11 @@ async def render_farm(farm: PlotModel):
 
 
 async def render_scenario(
-    environment: Environment,
     plot: Dict[str, PlotItem],
-    plot_id: Optional[str] = None
+    highlight_plot_id: Optional[str] = None,
+    planet_id: Optional[str] = None,
+    biome_index: Optional[int] = None,
+    variant_index: Optional[int] = None,
 ):
     """
     Render a scenario image.
@@ -37,9 +45,15 @@ async def render_scenario(
     :param plot_id: The ID of the plot to apply the cursor to.
     :return: The rendered scenario image.
     """
-    image = generate_image(environment, plot)
-    if plot_id:
-        image = apply_cursor(image, plot_id)
+    biome = PlanetsData.get_biome(planet_id, biome_index)
+
+    if variant_index is None:
+        variant_index = random.randint(0, len(biome.backgrounds) - 1)
+
+    bg_file_name = biome.backgrounds[variant_index]
+    image = generate_image(bg_file_name, plot, with_ui=False)
+    if highlight_plot_id:
+        image = apply_cursor(image, highlight_plot_id)
 
     with io.BytesIO() as image_binary:
         image.save(image_binary, "PNG")

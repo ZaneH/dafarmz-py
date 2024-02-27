@@ -120,6 +120,7 @@ class ChallengesView(SubmenuView):
                 self.profile = new_user
                 self.challenges = new_user.challenges
                 self.clear_items()
+                self.readd_back_button()
 
                 if len(self.challenges.options) > 0:
                     self.add_item(self.challenge_option_select)
@@ -154,6 +155,7 @@ class ChallengesView(SubmenuView):
                 self.challenges = new_user.challenges
 
             self.clear_items()
+            self.readd_back_button()
             if len(self.challenges.options) > 0:
                 self.challenge_option_select = self.create_challenge_option_select()
                 self.add_item(self.challenge_option_select)
@@ -188,6 +190,7 @@ class ChallengesView(SubmenuView):
             self.challenges = new_user.challenges
 
             self.clear_items()
+            self.readd_back_button()
             if len(self.challenges.options) > 0:
                 self.challenge_option_select = self.create_challenge_option_select()
                 self.add_item(self.challenge_option_select)

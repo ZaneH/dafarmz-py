@@ -9,10 +9,10 @@ COLLECTION_NAME = "planets"
 
 
 def build_biome_image_path(image_name: str) -> str:
-    return f"./images/files/new/plots/planets/{image_name}"
+    return f"./images/files/new/plots/planets/{image_name}.png"
 
 
-class PlanetEnvironmentModel(BaseModel):
+class PlanetBiomeModel(BaseModel):
     """
     The model for an environment on a planet.
     """
@@ -39,7 +39,7 @@ class PlanetModel(BaseModel):
     description: str = ""
     """The description of the planet."""
 
-    biomes: List[PlanetEnvironmentModel] = []
+    biomes: List[PlanetBiomeModel] = []
     """The environments on this planet. In order of progression."""
 
     @classmethod

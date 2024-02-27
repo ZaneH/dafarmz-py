@@ -20,7 +20,7 @@ COLLECTION_NAME = "users"
 class ConfigModel(BaseModel):
     last_planet_id: ObjectId = ObjectId("60f3b3e3e4e508f3e3e3e3e3")
     """The ID of the last planet the user visited. Default is Verdantia."""
-    last_biome: int = 0
+    last_biome_index: int = 0
     """The index of the last biome the user visited. Default is 0."""
 
     class Config:

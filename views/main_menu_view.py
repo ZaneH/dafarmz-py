@@ -203,6 +203,7 @@ class MainMenuView(discord.ui.View):
     async def on_explore_button_clicked(self, interaction: discord.Interaction):
         profile = await UserModel.find_by_discord_id(interaction.user.id)
         scenario_view = ScenarioView(profile)
+        scenario_view.profile = profile
         await interaction.message.edit(
             embed=create_scenario_embed(profile),
             files=[],

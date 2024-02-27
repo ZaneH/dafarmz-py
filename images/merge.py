@@ -5,7 +5,6 @@ from typing import Dict
 from PIL import Image
 
 from models.plots import PlotItem
-from utils.environments import Environment
 
 GRID_SIZE = 72
 PLOT_OFFSET_X = 15
@@ -33,16 +32,21 @@ def place_object(base, object_image, grid_x, grid_y):
     return base
 
 
-def generate_image(environment: Environment, plot_state: Dict[str, PlotItem]):
+def generate_image(
+    bg_file_name: str,
+    plot_state: Dict[str, PlotItem],
+    with_ui=True,  # TODO: Implement this by layering the UI on top
+):
     """
-    Generate an image of the farm based on the environment and plot state.
+    Generate an image of the plot.
 
-    :param environment: The environment of the farm
+    :param bg_file_name: The file name of the variant/biome background
     :param plot_state: The state of the farm plot
+    :param with_ui: Whether to include the UI (A1, A2, B5, etc.)
     :return: The generated image
     """
     base_image = Image.open(
-        f"./images/files/new/plots/plot-{environment.value}-ui.png"
+        f"./images/files/new/plots/planets/{bg_file_name}.png"
     ).convert("RGBA")
 
     # plot_state is a dict (A1, A2, B5, etc.)

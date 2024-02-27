@@ -14,7 +14,8 @@ class PlanetsView(PaginationView):
         self.update_buttons()
 
     async def on_update_message(self, interaction: discord.Interaction):
-        planet_bg = self.pagination.get_page()[0].biomes[0].backgrounds[0]
+        planet_bg = build_biome_image_path(
+            self.pagination.get_page()[0].biomes[0].backgrounds[0])
         await interaction.response.edit_message(
             content="",
             embed=create_planet_embed(

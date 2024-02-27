@@ -188,8 +188,12 @@ class PlotModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
     plot: Dict[str, PlotItem]
 
-    planet_id: ObjectId
-    biome: int
+    planet_id: Optional[PyObjectId] = None
+    """The planet ID that this scenario is on. If None, it is randomized."""
+    biome_index: int = 0
+    """The index of the biome that this scenario is on."""
+    variant_index: Optional[int] = None
+    """The index of the variant to use for the biome. If None, it is randomized."""
 
     def remove_plant(self, location: str):
         if self.plot.get(location):
@@ -303,6 +307,10 @@ class PlotModel(BaseModel):
 
 class FarmModel(PlotModel):
     discord_id: Optional[str] = None
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.variant_index = 0
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):
