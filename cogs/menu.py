@@ -21,11 +21,11 @@ __Odyssey__:
 - Fish: Catch aquatic creatures and loot.
 - Battle: Fight for glory and gold.
 
-__Bunker Actions__:
+__Colony Actions__:
 - Shop: Buy and sell items.
 - Craft: Create new upgrades, tools, and weaponry.
 - Inventory: Manage all of your items.
-- Upgrade: Improve your bunker and its facilities.
+- Upgrade: Improve your colony and its facilities.
 
 *Command your farm into the future.*
 """,

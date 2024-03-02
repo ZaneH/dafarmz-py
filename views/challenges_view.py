@@ -48,21 +48,21 @@ class ChallengesView(SubmenuView):
             style=discord.ButtonStyle.primary,
             label="Accept",
             custom_id="accept_challenge",
-            row=4,
+            row=3,
         )
 
         self.claim_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
             label="Claim",
             custom_id="claim_challenge",
-            row=4,
+            row=3,
         )
 
         self.refresh_button = discord.ui.Button(
             style=discord.ButtonStyle.danger,
             label="Refresh",
             custom_id="refresh_challenges",
-            row=4,
+            row=3,
         )
 
         self.accept_button.callback = self.on_accept_button_clicked

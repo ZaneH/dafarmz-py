@@ -6,7 +6,7 @@ from views.submenu_view import SubmenuView
 
 class StatsView(SubmenuView):
     def __init__(self, timeout=None, selected_stats="farm"):
-        super().__init__(timeout=timeout)
+        super().__init__(timeout=timeout, back_button_row=1)
 
         self.selected_stats = selected_stats
 
@@ -14,7 +14,7 @@ class StatsView(SubmenuView):
             style=discord.ButtonStyle.secondary,
             custom_id="farm_stats",
             label="Farm",
-            row=1,
+            row=0,
         )
         self.farm_stats_button.callback = self.on_farm_stats_button_clicked
         self.add_item(self.farm_stats_button)
@@ -23,7 +23,7 @@ class StatsView(SubmenuView):
             style=discord.ButtonStyle.secondary,
             custom_id="explore_stats",
             label="Explore",
-            row=1,
+            row=0,
         )
         self.explore_stats_button.callback = self.on_explore_stats_button_clicked
         self.add_item(self.explore_stats_button)

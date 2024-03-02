@@ -49,7 +49,7 @@ class DaFarmz(commands.Bot):
         self.add_view(FarmView())
         self.add_view(ChallengesView())
         self.add_view(ShopView())
-        self.add_view(SaleView())
+        self.add_view(SaleView(buy_or_sell="buy"))
         self.add_view(PlanetsView())
 
 

@@ -6,8 +6,8 @@ from views.submenu_view import SubmenuView
 
 
 class ProfileView(SubmenuView):
-    def __init__(self, timeout=120):
-        super().__init__(timeout=timeout)
+    def __init__(self, timeout=None):
+        super().__init__(timeout=timeout, back_button_row=1)
 
         self.stats_button = discord.ui.Button(
             style=discord.ButtonStyle.blurple,

@@ -5,8 +5,9 @@ from models.planets import build_biome_image_path
 from models.plots import FarmModel
 
 from models.users import UserModel
-from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_planet_embed, create_profile_embed, create_scenario_embed, create_shop_embed
+from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_planet_embed, create_profile_embed, create_scenario_embed, create_shop_embed, inventory_to_embed
 from utils.emoji_map import EMOJI_MAP
+from utils.users import require_user
 from views.challenges_view import ChallengesView
 from views.command_center_view import CommandCenterView
 from views.farm_view import FarmView
@@ -40,14 +41,14 @@ class MainMenuView(discord.ui.View):
         self.odyssey_button.callback = self.on_odyssey_button_clicked
         self.add_item(self.odyssey_button)
 
-        self.bunker_actions_button = discord.ui.Button(
+        self.colony_actions_button = discord.ui.Button(
             style=discord.ButtonStyle.success,
-            label="Bunker Actions",
-            custom_id="bunker_actions",
+            label="Colony Actions",
+            custom_id="colony_actions",
             row=2,
         )
-        self.bunker_actions_button.callback = self.on_bunker_actions_clicked
-        self.add_item(self.bunker_actions_button)
+        self.colony_actions_button.callback = self.on_colony_actions_clicked
+        self.add_item(self.colony_actions_button)
 
         # -- Top 4 --
 
@@ -153,7 +154,7 @@ class MainMenuView(discord.ui.View):
             custom_id="inventory",
             row=2,
         )
-        self.inventory_button.callback = self.on_odyssey_button_clicked
+        self.inventory_button.callback = self.on_inventory_button_clicked
         self.add_item(self.inventory_button)
 
         self.upgrade_button = discord.ui.Button(
@@ -197,7 +198,7 @@ class MainMenuView(discord.ui.View):
 
         await interaction.response.defer()
 
-    async def on_bunker_actions_clicked(self, interaction: discord.Interaction):
+    async def on_colony_actions_clicked(self, interaction: discord.Interaction):
         pass
 
     async def on_explore_button_clicked(self, interaction: discord.Interaction):
@@ -219,7 +220,7 @@ class MainMenuView(discord.ui.View):
 
     async def on_challenges_button_clicked(self, interaction: discord.Interaction):
         user = await UserModel.find_by_discord_id(interaction.user.id)
-        challenges_view = ChallengesView(user, back_button_row=4)
+        challenges_view = ChallengesView(user)
         embed = create_embed_for_challenges(
             interaction.user.display_name, user.challenges)
         await interaction.message.edit(embed=embed, view=challenges_view)
@@ -245,6 +246,14 @@ class MainMenuView(discord.ui.View):
             view=shop_view,
             files=[],
             attachments=[]
+        )
+
+    async def on_inventory_button_clicked(self, interaction: discord.Interaction):
+        profile = await UserModel.find_by_discord_id(interaction.user.id)
+        back_view = SubmenuView()
+        return await interaction.response.edit_message(
+            embed=inventory_to_embed(profile.inventory),
+            view=back_view
         )
 
     async def on_about_button_clicked(self, interaction: discord.Interaction):

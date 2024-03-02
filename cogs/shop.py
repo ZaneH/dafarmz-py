@@ -12,6 +12,7 @@ from utils.embeds import create_shop_embed, create_shop_item_embed
 from utils.shop import name_to_shop_item
 from utils.users import require_user
 from views.sale_view import SaleView
+from views.shop_view import ShopView
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +31,10 @@ def create_receipt(receipt_kind, buyer_discord_id, item_name, quantity, value):
     receipt.add_field(name="Quantity", value=quantity)
     if receipt_kind == "buy":
         receipt.add_field(name="Total",
-                          value=f"-{format_currency(value)}")
+                          value=f"-{format_currency(abs(value))}")
     else:
         receipt.add_field(name="Total",
-                          value=f"+{format_currency(value)}")
+                          value=f"+{format_currency(abs(value))}")
 
     formatted_date = datetime.utcnow().strftime(
         "%b %d, %Y")
@@ -49,21 +50,12 @@ class Shop(commands.Cog):
     @commands.slash_command(name="shop", description="View the shop")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def shop(self, ctx: discord.context.ApplicationContext):
-        shop_data = ShopData.buyable()
-        if len(shop_data) == 0:
-            return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
-
-        user = await UserModel.find_by_discord_id(ctx.author.id)
-        if not await require_user(ctx, user):
-            return
-
-        # Filter shop data based on user's level
-        shop_data = [
-            item for item in shop_data if item.level_required <= user.current_level]
-
-        embed = create_shop_embed(shop_data)
-
-        await ctx.respond(embed=embed, ephemeral=True)
+        shop_view = ShopView()
+        embed = create_shop_embed(shop_view.pagination.get_page())
+        await ctx.respond(
+            embed=embed,
+            view=shop_view,
+        )
 
     def get_purchasables(ctx: discord.AutocompleteContext):
         type = ctx.options['type']
@@ -95,23 +87,8 @@ class Shop(commands.Cog):
 
         # Handle the case where no options are provided
         if type is None and name is None:
-            sale_view = SaleView(shop_data, "buy")
+            sale_view = SaleView("buy")
 
-            async def _on_purchase_callback(view, item, item_name, quantity, cost):
-                success = await UserModel.give_item(ctx.author.id, item, quantity, cost)
-                if success:
-                    receipt = create_receipt(
-                        "buy",
-                        ctx.author.id, item_name, quantity, cost)
-
-                    if isinstance(view, SaleView):
-                        await view.message.edit(content="Transaction completed.", view=None)
-
-                    await ctx.respond(embed=receipt)
-                else:
-                    await ctx.respond("You don't have enough to buy that.", ephemeral=True)
-
-            sale_view.on_purchase_callback = _on_purchase_callback
             await ctx.respond("## Jason's Shop", view=sale_view, ephemeral=True)
         else:
             full_item = name_to_shop_item(name)
@@ -148,23 +125,8 @@ class Shop(commands.Cog):
             return await ctx.respond("Shop is not ready yet. Come back later.", ephemeral=True)
 
         if type is None and name is None:
-            sale_view = SaleView(shop_data, "sell")
+            sale_view = SaleView("sell")
 
-            async def _on_purchase_callback(view, item, item_name, quantity, cost):
-                success = await UserModel.remove_item(ctx.author.id, item, quantity)
-                if success:
-                    receipt = create_receipt(
-                        "sell",
-                        ctx.author.id, item_name, quantity, cost)
-
-                    if isinstance(view, SaleView):
-                        await view.message.edit(content="Transaction completed.", view=None)
-
-                    await ctx.respond(embed=receipt)
-                else:
-                    await ctx.respond("You don't have enough to do that.", ephemeral=True)
-
-            sale_view.on_purchase_callback = _on_purchase_callback
             await ctx.respond("## Jason's Shop", view=sale_view, ephemeral=True)
         else:
             full_item = name_to_shop_item(name)

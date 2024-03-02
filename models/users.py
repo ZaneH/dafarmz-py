@@ -61,6 +61,9 @@ class UserModel(BaseModel):
     config: ConfigModel = Field(default_factory=ConfigModel)
     """The user's configuration as a `ConfigModel`."""
     unlocked_planets: List[ObjectId] = []
+    """The list of unlocked planets as a list of ObjectId."""
+    energy: int = 0
+    """The user's energy as int."""
 
     @classmethod
     async def find_by_discord_id(cls, discord_id):

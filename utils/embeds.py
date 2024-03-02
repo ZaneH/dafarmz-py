@@ -1,17 +1,22 @@
+import logging
 import random
-import discord
-from db.planets_data import PlanetsData
+from typing import Dict
 
+import discord
+
+from db.planets_data import PlanetsData
 from models.challenges import ChallengesModel
 from models.planets import PlanetModel
 from models.shop_items import ShopItemModel
 from models.users import UserModel
 from utils.currency import format_currency
 from utils.emoji_map import EMOJI_MAP
-from utils.inventory import get_amount_in_inventory
 from utils.level_calculator import next_level_xp
-from utils.progress_bar import construct_normal_progrss_bar, construct_xp_progress_bar
+from utils.progress_bar import (construct_normal_progrss_bar,
+                                construct_xp_progress_bar)
 from utils.shop import key_to_shop_item
+
+logger = logging.getLogger(__name__)
 
 
 def create_farm_embed(farm_owner_name: str):
@@ -208,14 +213,14 @@ def create_farm_stats_embed(profile: UserModel):
     harvest_count = profile.stats.get("harvest", {}).get("count", 0)
 
     embed.add_field(
-        name="Planted",
-        value=f"{EMOJI_MAP['emote:potted']} {planted_count}",
+        name="Harvests",
+        value=f"{EMOJI_MAP['tool:harvest']} {harvest_count}",
         inline=True
     )
 
     embed.add_field(
-        name="Harvests",
-        value=f"{EMOJI_MAP['tool:harvest']} {harvest_count}",
+        name="Planted",
+        value=f"{EMOJI_MAP['emote:potted']} {planted_count}",
         inline=True
     )
 
@@ -340,5 +345,40 @@ def create_planet_embed(planet: PlanetModel, file: discord.File = None):
 
     if file:
         embed.set_thumbnail(url=f"attachment://{file.filename.split('/')[-1]}")
+
+    return embed
+
+
+def inventory_to_embed(inventory: Dict[str, int]):
+    def item_type_to_name_fallback(item_key):
+        name = item_key.split(":")[-1]
+        return str(name).capitalize()
+
+    def item_key_to_type(item_key):
+        type = item_key.split(":")[0]
+        return str(type).capitalize()
+
+    embed = discord.Embed(
+        title="Inventory",
+        color=discord.Color.dark_gray(),
+    )
+
+    for item_key, item in inventory.items():
+        try:
+            full_item = key_to_shop_item(item_key)
+            item_name = full_item.name if full_item else None
+
+            if not item_name:
+                logger.warning(f"Item {item_key} not found in shop data")
+                item_name = item_type_to_name_fallback(item_key)
+
+            embed.add_field(
+                name=f"{EMOJI_MAP[item_key]} {item_name} – {item.amount}",
+                value=f"{EMOJI_MAP['ui:reply']} {item_key_to_type(item_key)}",
+                inline=False
+            )
+        except Exception as e:
+            logger.error(
+                f"Error adding item {item_key} to inventory embed: {e}")
 
     return embed

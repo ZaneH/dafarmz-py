@@ -5,7 +5,7 @@ class SubmenuView(discord.ui.View):
     async def on_timeout(self):
         return await self.message.edit(view=None)
 
-    def __init__(self, timeout=None, back_button_row=0):
+    def __init__(self, timeout=None, back_button_row=4):
         super().__init__(timeout=timeout)
 
         self.back_button = discord.ui.Button(

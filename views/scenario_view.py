@@ -49,7 +49,7 @@ class ScenarioView(SubmenuView):
             style=discord.ButtonStyle.primary,
             label="Select",
             custom_id="select",
-            row=1,
+            row=0,
         )
         self.select_button.callback = self.on_select_button_clicked
         self.add_item(self.select_button)
@@ -57,7 +57,7 @@ class ScenarioView(SubmenuView):
             style=discord.ButtonStyle.secondary,
             label="Next",
             custom_id="next",
-            row=1,
+            row=0,
         )
         self.next_button.callback = self.on_explore_button_clicked
         self.add_item(self.next_button)
