@@ -7,15 +7,14 @@ import discord
 
 class PlanetsView(PaginationView):
     def __init__(self, timeout=None):
-        super().__init__(timeout=timeout, data=PlanetsData.all())
+        super().__init__(timeout=timeout, data=PlanetsData.get_planets())
 
         self.update_message_callback = self.on_update_message
 
         self.update_buttons()
 
     async def on_update_message(self, interaction: discord.Interaction):
-        planet_bg = build_biome_image_path(
-            self.pagination.get_page()[0].biomes[0].backgrounds[0])
+        planet_bg = self.pagination.get_page()[0].preview_background
         await interaction.response.edit_message(
             content="",
             embed=create_planet_embed(
@@ -31,10 +30,8 @@ class PlanetsView(PaginationView):
         if len(page) == 0:
             return None
 
-        first_bg = page[0].biomes[0].backgrounds[0]
-        file = discord.File(
-            build_biome_image_path(first_bg)
-        )
+        first_bg = page[0].preview_background
+        file = discord.File(first_bg)
 
         embed = create_planet_embed(
             page[0],

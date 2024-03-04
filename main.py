@@ -7,13 +7,6 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from api.fastapi import router
-from views.challenges_view import ChallengesView
-from views.farm_view import FarmView
-from views.main_menu_view import MainMenuView
-from views.planets_view import PlanetsView
-from views.sale_view import SaleView
-from views.scenario_view import ScenarioView
-from views.shop_view import ShopView
 
 load_dotenv()
 
@@ -44,6 +37,15 @@ class DaFarmz(commands.Bot):
             f"{self.user} is ready..."
         )
 
+        from views.challenges_view import ChallengesView
+        from views.farm_view import FarmView
+        from views.main_menu_view import MainMenuView
+        from views.planets_view import PlanetsView
+        from views.sale_view import SaleView
+        from views.scenario_view import ScenarioView
+        from views.select_location_view import SelectLocationView
+        from views.shop_view import ShopView
+
         self.add_view(MainMenuView())
         self.add_view(ScenarioView())
         self.add_view(FarmView())
@@ -51,6 +53,7 @@ class DaFarmz(commands.Bot):
         self.add_view(ShopView())
         self.add_view(SaleView(buy_or_sell="buy"))
         self.add_view(PlanetsView())
+        self.add_view(SelectLocationView())
 
 
 bot = DaFarmz()

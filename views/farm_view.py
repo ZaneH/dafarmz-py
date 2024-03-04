@@ -2,7 +2,7 @@ import discord
 
 from db.shop_data import ShopData
 from images.render import render_farm
-from models.plots import FarmModel, PlotModel
+from models.plots import FarmModel
 from models.users import UserModel
 from utils.embeds import create_farm_embed
 from utils.emoji_map import EMOJI_MAP
@@ -23,7 +23,6 @@ class FarmView(SubmenuView):
 
         self.farm = farm
         self.discord_user = farm_owner
-        self.is_at_stage_one = True
 
         self.seed_select = None
         self.plant_button = discord.ui.Button(
@@ -63,13 +62,15 @@ class FarmView(SubmenuView):
         self.numer_dropdown = None
 
     def remove_stage_one_buttons(self):
-        self.is_at_stage_one = False
+        self.remove_menu_depth()
+
         self.remove_item(self.plant_button)
         self.remove_item(self.harvest_button)
         self.remove_item(self.upgrade_button)
 
     def add_stage_one_buttons(self):
-        self.is_at_stage_one = True
+        self.add_menu_depth()
+
         self.add_item(self.plant_button)
         self.add_item(self.harvest_button)
         self.add_item(self.upgrade_button)
@@ -238,7 +239,7 @@ class FarmView(SubmenuView):
         await self.check_if_plot_specified(interaction, "number")
 
     async def on_back_button_clicked(self, interaction: discord.Interaction):
-        if self.is_at_stage_one:
+        if self.should_main_menu:
             return await super().on_back_button_clicked(interaction)
 
         self.remove_item(self.letter_dropdown)

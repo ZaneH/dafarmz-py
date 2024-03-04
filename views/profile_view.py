@@ -19,7 +19,7 @@ class ProfileView(SubmenuView):
 
     async def on_stats_button_clicked(self, interaction: discord.Interaction):
         from utils.embeds import create_farm_stats_embed
-        profile = await UserModel.find_by_discord_id(interaction.user.id)
+        profile = await UserModel.get_profile(interaction.user.id)
         stats_view = StatsView()
 
         await interaction.response.edit_message(

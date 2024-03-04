@@ -43,7 +43,7 @@ class P2P(commands.Cog):
                   user: discord.Option(discord.User, description="User to pay", required=True), # type: ignore
                   amount: discord.Option(float, description="Amount to pay", required=True)): # type: ignore
         # fmt: on
-        if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
+        if not await require_user(ctx, await UserModel.get_profile(ctx.author.id)):
             return
 
         if amount <= 0:
@@ -52,14 +52,14 @@ class P2P(commands.Cog):
         # Database stores balance in cents
         amount = int(amount * 100)
 
-        user_model = await UserModel.find_by_discord_id(ctx.author.id)
+        user_model = await UserModel.get_profile(ctx.author.id)
         if user_model.balance < amount:
             return await ctx.respond(f"You don't have enough money!\n**Balance**: {format_currency(user_model.balance)}", ephemeral=True)
 
         user_model.balance -= amount
         await user_model.save()
 
-        recipient_model = await UserModel.find_by_discord_id(user.id)
+        recipient_model = await UserModel.get_profile(user.id)
         if recipient_model is None:
             return await ctx.respond("Recipient does not have a farm.\nAsk them to create one using `/setup` and try again.", ephemeral=True)
 

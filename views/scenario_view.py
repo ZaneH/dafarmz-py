@@ -1,13 +1,18 @@
 import logging
+import os
 import random
+from typing import Tuple
 
 import discord
+from db.planets_data import PlanetsData
 
 from images.render import render_scenario
+from models.planets import PlanetBiomeModel
 from models.scenarios import ScenarioModel
 from models.users import UserModel
-from utils.embeds import create_scenario_embed
+from utils.embeds import create_scenario_embed_and_file
 from utils.yields import harvest_yield_to_determined_yield, harvest_yield_to_list
+from views.select_location_view import SelectLocationView
 from views.submenu_view import SubmenuView
 
 logger = logging.getLogger(__name__)
@@ -17,12 +22,23 @@ class ScenarioView(SubmenuView):
     def __init__(self, profile: UserModel | None = None, timeout=None):
         super().__init__(timeout=timeout)
 
+        if not profile:
+            logger.warning("No profile found for scenario.")
+            return
+
+        last_planet_id = profile.config.last_planet_id
+        last_biome_index = profile.config.last_biome_index
+        self.current_biome: PlanetBiomeModel = PlanetsData.get_biome(
+            last_planet_id, last_biome_index
+        )
+
         self.selected_scenario: ScenarioModel = None
         self.profile = profile  # User profile
         self.explore_button = None  # Go exploring
+        self.travel_button = None  # Travel to another planet/biome
         self.select_button = None  # Select scenario
         self.next_button = None  # Next scenario
-        self.interaction_helper = None
+        self.interaction_helper = None  # Helper for scenario interactions
 
         self.add_stage_one_buttons()
 
@@ -31,6 +47,7 @@ class ScenarioView(SubmenuView):
         Buttons for finding a scenario.
         """
         self.remove_item(self.explore_button)
+        self.remove_item(self.travel_button)
         self.explore_button = discord.ui.Button(
             style=discord.ButtonStyle.primary,
             label="Explore",
@@ -40,11 +57,30 @@ class ScenarioView(SubmenuView):
         self.explore_button.callback = self.on_explore_button_clicked
         self.add_item(self.explore_button)
 
+        self.travel_button = discord.ui.Button(
+            style=discord.ButtonStyle.secondary,
+            label="Travel",
+            custom_id="travel",
+            row=1,
+        )
+        self.travel_button.callback = self.on_travel_button_clicked
+        self.add_item(self.travel_button)
+
+    async def on_travel_button_clicked(self, interaction: discord.Interaction):
+        select_location_view = SelectLocationView()
+        await interaction.response.edit_message(
+            content="Select a location to travel to.",
+            view=select_location_view
+        )
+
     def add_stage_two_buttons(self):
         """
         Buttons for interacting with the selected scenario.
         """
+        self.add_menu_depth()
+
         self.remove_item(self.explore_button)
+        self.remove_item(self.travel_button)
         self.select_button = discord.ui.Button(
             style=discord.ButtonStyle.primary,
             label="Select",
@@ -63,9 +99,13 @@ class ScenarioView(SubmenuView):
         self.add_item(self.next_button)
 
     def remove_stage_one_buttons(self):
+        self.remove_menu_depth()
+
         self.remove_item(self.explore_button)
 
     def remove_stage_two_buttons(self):
+        self.remove_menu_depth()
+
         self.remove_item(self.select_button)
         self.remove_item(self.next_button)
 
@@ -91,9 +131,12 @@ class ScenarioView(SubmenuView):
         self.add_stage_two_buttons()
 
         files = await self.get_files(with_cursor=False)
+        (embed, scenario_file) = create_scenario_embed_and_file(self.profile)
+        if scenario_file:
+            files.append(scenario_file)
         await interaction.response.edit_message(
             files=files,
-            embed=create_scenario_embed(self.profile),
+            embed=embed,
             attachments=[],
             view=self
         )
@@ -119,12 +162,18 @@ class ScenarioView(SubmenuView):
         await interaction.response.edit_message(
             content="",
             files=files,
-            embed=create_scenario_embed(self.profile),
+            embed=create_scenario_embed_and_file(self.profile),
             attachments=[],
             view=self
         )
 
     async def get_files(self, with_cursor=True):
+        """
+        Get the required Discord files to display the scenario.
+
+        :param with_cursor: Whether to include the cursor in the image.
+        :return: A list of Discord files.
+        """
         planet_id = self.selected_scenario.planet_id
         biome_index = self.selected_scenario.biome_index
         variant_index = self.selected_scenario.variant_index
@@ -139,15 +188,28 @@ class ScenarioView(SubmenuView):
         )]
 
     async def on_cursor_change(self, interaction: discord.Interaction):
+        """
+        The cursor has changed position.
+
+        :param interaction: The interaction.
+        """
         files = await self.get_files(with_cursor=True)
+        (embed, file) = create_scenario_embed_and_file(self.profile)
+        if file:
+            files.append(file)
         await interaction.response.edit_message(
             files=files,
-            embed=create_scenario_embed(self.profile),
+            embed=embed,
             attachments=[],
             view=self
         )
 
     async def on_interact_button_clicked(self, interaction: discord.Interaction):
+        """
+        The user wants to interact with the plot space.
+
+        :param interaction: The interaction.
+        """
         plot_item = self.get_plot_item()
         plot_id = self.interaction_helper.cursor_position
 
@@ -181,30 +243,40 @@ class ScenarioView(SubmenuView):
             formatted_yield = harvest_yield_to_list(harvest_yield)
 
             if not any(harvest_yield.values()):
+                (embed, file) = create_scenario_embed_and_file(self.profile)
                 return await interaction.response.edit_message(
                     content="You looked but didn't find anything!",
-                    embed=create_scenario_embed(self.profile),
-                    attachments=[],
+                    embed=embed,
+                    file=file,
                     view=self
                 )
 
             files = await self.get_files(with_cursor=True)
+            (embed, file) = create_scenario_embed_and_file(self.profile)
+            if file:
+                files.append(file)
+
             return await interaction.response.edit_message(
                 content=f"You found:\n{formatted_yield}",
-                embed=create_scenario_embed(self.profile),
-                attachments=[],
+                embed=create_scenario_embed_and_file(self.profile),
                 files=files,
                 view=self
             )
 
+        (embed, file) = create_scenario_embed_and_file(self.profile)
         return await interaction.response.edit_message(
             content=f"You can't interact with {plot_id}.",
-            embed=create_scenario_embed(self.profile),
-            attachments=[],
+            embed=embed,
+            file=file,
             view=self
         )
 
     def get_plot_item(self):
+        """
+        Get the plot item at the cursor position.
+
+        :return: The plot item.
+        """
         if not self.interaction_helper:
             return None
 
@@ -218,11 +290,25 @@ class ScenarioView(SubmenuView):
 
         self.readd_back_button()
 
+        (embed, file) = create_scenario_embed_and_file(self.profile)
         await interaction.response.edit_message(
             content="You left the scenario.",
-            embed=create_scenario_embed(self.profile),
-            files=[],
+            embed=embed,
+            file=file,
             view=self
+        )
+
+    async def on_back_button_clicked(self, interaction: discord.Interaction):
+        if self.should_main_menu:
+            return await super().on_back_button_clicked(interaction)
+
+        from views.scenario_view import ScenarioView
+        (embed, file) = create_scenario_embed_and_file(self.profile)
+        await interaction.response.edit_message(
+            content="",
+            embed=embed,
+            file=file,
+            view=ScenarioView(self.profile),
         )
 
 

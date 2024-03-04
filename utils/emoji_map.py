@@ -8,7 +8,7 @@ EMOJI_MAP = {
     "tool:harvest": "<:df_harvest:1208465758892458036>",
     "ui:upgrade": "<:df_upgrade:1208502498860601436>",
     "seed:frost_lettuce": "<:df_rr:1207913276516859936>",
-    "seed:iceburg_lettuce": "<:df_rr:1207913276516859936>",
+    "seed:iceburg_lettuce": "<:df_iceburglettuce:1210308839321370744>",
     "plant:frost_lettuce": "<:df_rr:1207913276516859936>",
     "plant:iceburg_lettuce": "<:df_iceburglettuce:1210308839321370744>",
     "seed:crystalline_cabbage": "<:df_rr:1207913276516859936>",

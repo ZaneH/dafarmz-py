@@ -66,7 +66,7 @@ class UserModel(BaseModel):
     """The user's energy as int."""
 
     @classmethod
-    async def find_by_discord_id(cls, discord_id):
+    async def get_profile(cls, discord_id: str):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)
         doc = await collection.find_one({
             "discord_id": str(discord_id)
@@ -343,6 +343,24 @@ class UserModel(BaseModel):
             f"User {self.discord_id} claimed challenge rewards: {rewards}")
 
         return new_user
+
+    @classmethod
+    async def update_location(cls, discord_id: str, planet_id: str, biome_index: int):
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        result = await collection.find_one_and_update(
+            {
+                "discord_id": str(discord_id),
+            },
+            {
+                "$set": {
+                    "config.last_planet_id": planet_id,
+                    "config.last_biome_index": biome_index
+                },
+            },
+            return_document=ReturnDocument.AFTER
+        )
+
+        return cls(**result) if result else None
 
     async def save(self):
         collection = Database.get_instance().get_collection(COLLECTION_NAME)

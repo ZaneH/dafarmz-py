@@ -39,7 +39,7 @@ async def topgg_webhook(
 
     logger.debug(f"Incoming top.gg webhook POST request: {request}")
 
-    user = await UserModel.find_by_discord_id(user_id)
+    user = await UserModel.get_profile(user_id)
     if not user:
         logger.warning(
             f"User {user_id} not found for top.gg vote")

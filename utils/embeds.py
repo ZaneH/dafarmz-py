@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 from typing import Dict
 
@@ -6,7 +7,7 @@ import discord
 
 from db.planets_data import PlanetsData
 from models.challenges import ChallengesModel
-from models.planets import PlanetModel
+from models.planets import PlanetModel, build_biome_image_path
 from models.shop_items import ShopItemModel
 from models.users import UserModel
 from utils.currency import format_currency
@@ -28,35 +29,36 @@ def create_farm_embed(farm_owner_name: str):
     return embed
 
 
-def create_scenario_embed(profile: UserModel):
-    description = ""
+def create_scenario_embed_and_file(profile: UserModel):
+    unlocked_planets_summary = ""
     for planet_id in profile.unlocked_planets:
         planet = PlanetsData.get_planet(planet_id)
         if planet:
-            description += f"- {planet.name}\n"
-
-    embed = discord.Embed(
-        title=f"Go Exploring",
-        description=f"Unlocked Planets:\n{description}",
-        color=discord.Color.embed_background()
-    )
+            unlocked_planets_summary += f"- {planet.name}\n"
 
     # TODO: Put something here, energy, description of the planet, requirements to unlock, rewards, etc.
     last_planet_id = profile.config.last_planet_id
     last_biome_index = profile.config.last_biome_index
+    biome = None
     planet = PlanetsData.get_planet(last_planet_id)
-    if planet:
-        biome = planet.biomes[last_biome_index]
+    biome = planet.biomes[last_biome_index]
 
     current_selection = f"{planet.name} – {biome.name}" if planet else "None"
 
-    embed.add_field(
-        name="Current Selection",
-        value=f"{current_selection}",
-        inline=False
+    embed = discord.Embed(
+        title=f"Go Exploring",
+        description=f"**__Current Selection__**:\n{current_selection}\n\n**Description**: {biome.description}\n\n**__Unlocked Planets__**\n{unlocked_planets_summary}",
+        color=discord.Color.embed_background()
     )
 
-    return embed
+    bg = planet.preview_background if planet else None
+    if bg and os.path.exists(bg):
+        file = discord.File(bg)
+        embed.set_thumbnail(url=f"attachment://{file.filename.split('/')[-1]}")
+    else:
+        file = discord.MISSING
+
+    return (embed, file)
 
 
 def goal_completion_percentage(progress: float, goal_amount: float) -> float:

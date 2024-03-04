@@ -23,6 +23,12 @@ class PlanetBiomeModel(BaseModel):
     backgrounds: List[str] = []
     """The backgrounds of the environment. File names."""
 
+    @property
+    def preview_background(self):
+        if len(self.backgrounds) > 0:
+            return build_biome_image_path(self.backgrounds[0])
+        return None
+
     class Config:
         arbitrary_types_allowed = True
         from_attributes = True
@@ -52,6 +58,13 @@ class PlanetModel(BaseModel):
 
         planets = await cursor.to_list(length=None)
         return [cls(**planet) for planet in planets]
+
+    @property
+    def preview_background(self):
+        if len(self.biomes) > 0:
+            if len(self.biomes[0].backgrounds) > 0:
+                return build_biome_image_path(self.biomes[0].backgrounds[0])
+        return None
 
     class Config:
         arbitrary_types_allowed = True

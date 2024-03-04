@@ -42,7 +42,7 @@ class StatsView(SubmenuView):
         self.selected_stats = "farm"
         self.update_buttons()
 
-        profile = await UserModel.find_by_discord_id(interaction.user.id)
+        profile = await UserModel.get_profile(interaction.user.id)
         embed = create_farm_stats_embed(profile)
         await interaction.response.edit_message(view=self, embed=embed)
 
@@ -51,6 +51,6 @@ class StatsView(SubmenuView):
         self.selected_stats = "explore"
         self.update_buttons()
 
-        profile = await UserModel.find_by_discord_id(interaction.user.id)
+        profile = await UserModel.get_profile(interaction.user.id)
         embed = create_explore_stats_embed(profile)
         await interaction.response.edit_message(view=self, embed=embed)

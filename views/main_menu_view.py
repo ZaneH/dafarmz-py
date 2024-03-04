@@ -5,7 +5,7 @@ from models.planets import build_biome_image_path
 from models.plots import FarmModel
 
 from models.users import UserModel
-from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_planet_embed, create_profile_embed, create_scenario_embed, create_shop_embed, inventory_to_embed
+from utils.embeds import create_command_list_embed, create_embed_for_challenges, create_farm_embed, create_planet_embed, create_profile_embed, create_scenario_embed_and_file, create_shop_embed, inventory_to_embed
 from utils.emoji_map import EMOJI_MAP
 from utils.users import require_user
 from views.challenges_view import ChallengesView
@@ -202,12 +202,13 @@ class MainMenuView(discord.ui.View):
         pass
 
     async def on_explore_button_clicked(self, interaction: discord.Interaction):
-        profile = await UserModel.find_by_discord_id(interaction.user.id)
+        profile = await UserModel.get_profile(interaction.user.id)
         scenario_view = ScenarioView(profile)
         scenario_view.profile = profile
+        (embed, file) = create_scenario_embed_and_file(profile)
         await interaction.message.edit(
-            embed=create_scenario_embed(profile),
-            files=[],
+            embed=embed,
+            file=file,
             view=scenario_view
         )
         await interaction.response.defer()
@@ -219,7 +220,7 @@ class MainMenuView(discord.ui.View):
         await interaction.response.defer()
 
     async def on_challenges_button_clicked(self, interaction: discord.Interaction):
-        user = await UserModel.find_by_discord_id(interaction.user.id)
+        user = await UserModel.get_profile(interaction.user.id)
         challenges_view = ChallengesView(user)
         embed = create_embed_for_challenges(
             interaction.user.display_name, user.challenges)
@@ -227,7 +228,7 @@ class MainMenuView(discord.ui.View):
         await interaction.response.defer()
 
     async def on_profile_button_clicked(self, interaction: discord.Interaction):
-        user = await UserModel.find_by_discord_id(interaction.user.id)
+        user = await UserModel.get_profile(interaction.user.id)
         embed = create_profile_embed(user, interaction.user)
         profile_view = ProfileView()
         await interaction.message.edit(
@@ -249,7 +250,7 @@ class MainMenuView(discord.ui.View):
         )
 
     async def on_inventory_button_clicked(self, interaction: discord.Interaction):
-        profile = await UserModel.find_by_discord_id(interaction.user.id)
+        profile = await UserModel.get_profile(interaction.user.id)
         back_view = SubmenuView()
         return await interaction.response.edit_message(
             embed=inventory_to_embed(profile.inventory),

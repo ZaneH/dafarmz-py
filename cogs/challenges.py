@@ -16,7 +16,7 @@ class Challenges(discord.Cog):
         """
         /challenges - View the user's challenges.
         """
-        profile = await UserModel.find_by_discord_id(ctx.author.id)
+        profile = await UserModel.get_profile(ctx.author.id)
         if not await require_user(ctx, profile):
             return
 

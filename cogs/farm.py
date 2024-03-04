@@ -7,7 +7,7 @@ from discord.ext import commands
 from images.render import render_farm
 from models.plots import FarmModel, PlotModel
 from models.users import UserModel
-from utils.embeds import create_farm_embed, create_scenario_embed
+from utils.embeds import create_farm_embed, create_scenario_embed_and_file
 from utils.emoji_map import EMOJI_MAP
 from utils.shop import name_to_shop_item
 from utils.users import require_user
@@ -37,9 +37,10 @@ class Farm(commands.Cog):
     async def start_explore_view(
             self, ctx: discord.context.ApplicationContext, profile: UserModel):
         explore_view = ScenarioView(profile)
+        (embed, file) = create_scenario_embed_and_file(profile)
         await ctx.respond(
-            embed=create_scenario_embed(profile),
-            files=[],
+            embed=embed,
+            file=file,
             view=explore_view
         )
 
@@ -64,7 +65,7 @@ class Farm(commands.Cog):
     @plot.command(name="explore", description="Look for new plots to expand your farm")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def plot_explore(self, ctx: discord.context.ApplicationContext):
-        user = await UserModel.find_by_discord_id(ctx.author.id)
+        user = await UserModel.get_profile(ctx.author.id)
         if not await require_user(ctx, user):
             return
 
@@ -110,7 +111,7 @@ class Farm(commands.Cog):
         seed: discord.Option(str, "Seed to plant", required=False) # type: ignore
     ):
         # fmt: on
-        user = await UserModel.find_by_discord_id(ctx.author.id)
+        user = await UserModel.get_profile(ctx.author.id)
         if not await require_user(ctx, user):
             return
 

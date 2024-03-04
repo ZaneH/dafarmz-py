@@ -78,7 +78,7 @@ class Shop(commands.Cog):
     name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
     amount: discord.Option(int, description="The amount of the item to buy", required=False) = 1): # type: ignore
     # fmt: on
-        if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
+        if not await require_user(ctx, await UserModel.get_profile(ctx.author.id)):
             return
 
         shop_data = ShopData.buyable()
@@ -117,7 +117,7 @@ class Shop(commands.Cog):
     name: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(get_purchasables), description="The name of the item to buy", required=False), # type: ignore
     amount: discord.Option(int, description="The amount of the item to sell", required=False) = 1): # type: ignore
     # fmt: on
-        if not await require_user(ctx, await UserModel.find_by_discord_id(ctx.author.id)):
+        if not await require_user(ctx, await UserModel.get_profile(ctx.author.id)):
             return
 
         shop_data = ShopData.buyable()

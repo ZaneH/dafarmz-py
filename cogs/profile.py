@@ -28,7 +28,7 @@ class Profile(commands.Cog):
             farm = PlotModel(discord_id=str(ctx.author.id), plot={})
             await farm.save_plot()
 
-        user = await UserModel.find_by_discord_id(ctx.author.id)
+        user = await UserModel.get_profile(ctx.author.id)
         if not user:
             user = UserModel(discord_id=str(ctx.author.id),
                              balance=100, inventory={},
@@ -46,7 +46,7 @@ class Profile(commands.Cog):
         """
         /profile - View the user's profile.
         """
-        profile = await UserModel.find_by_discord_id(ctx.author.id)
+        profile = await UserModel.get_profile(ctx.author.id)
         if not await require_user(ctx, profile):
             return
 
@@ -58,7 +58,7 @@ class Profile(commands.Cog):
     @commands.slash_command(name="inventory", description="View your inventory")
     @commands.cooldown(1, 6, commands.BucketType.user)
     async def inventory(self, ctx: discord.context.ApplicationContext):
-        profile = await UserModel.find_by_discord_id(ctx.author.id)
+        profile = await UserModel.get_profile(ctx.author.id)
         back_view = SubmenuView()
         if await require_user(ctx, profile):
             return await ctx.respond(
@@ -69,7 +69,7 @@ class Profile(commands.Cog):
     @commands.slash_command(name="vote", description="Vote for the bot to earn rewards")
     @commands.cooldown(3, 10, commands.BucketType.user)
     async def vote(self, ctx: discord.context.ApplicationContext):
-        profile = await UserModel.find_by_discord_id(ctx.author.id)
+        profile = await UserModel.get_profile(ctx.author.id)
         if not await require_user(ctx, profile):
             return
 
@@ -91,7 +91,7 @@ Thank you for helping us grow!""",
     @commands.slash_command(name="stats", description="View your farming stats")
     @commands.cooldown(1, 4, commands.BucketType.user)
     async def stats(self, ctx: discord.context.ApplicationContext):
-        profile = await UserModel.find_by_discord_id(ctx.author.id)
+        profile = await UserModel.get_profile(ctx.author.id)
         if not await require_user(ctx, profile):
             return
 

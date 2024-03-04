@@ -9,27 +9,45 @@ class PlanetsData:
         self._instance = None
 
     @classmethod
-    def all(cls) -> List[PlanetModel]:
+    def get_planets(cls) -> List[PlanetModel]:
+        """
+        Get all the planets in the game
+
+        :return: List[PlanetModel]
+        """
         return cls.get_instance().all_planets
 
     @classmethod
-    def get_instance(cls):
-        if not hasattr(cls, "_instance"):
-            cls._instance = cls()
-        return cls._instance
-
-    @classmethod
     def get_planet(cls, id: str) -> PlanetModel:
+        """
+        Get a planet by id
+
+        :param id: str
+        :return: PlanetModel
+        """
         instance = cls.get_instance()
         for planet in instance.all_planets:
-            if planet.id == id:
+            if str(planet.id) == str(id):
                 return planet
 
         return None
 
     @classmethod
     def get_biome(cls, planet_id: str, biome_index: int):
+        """
+        Get a biome by index
+
+        :param planet_id: str
+        :param biome_index: int
+        :return: BiomeModel
+        """
         planet = cls.get_planet(planet_id)
         if planet:
             return planet.biomes[biome_index]
         return None
+
+    @classmethod
+    def get_instance(cls):
+        if not hasattr(cls, "_instance"):
+            cls._instance = cls()
+        return cls._instance
