@@ -67,7 +67,8 @@ class ScenarioView(SubmenuView):
         self.add_item(self.travel_button)
 
     async def on_travel_button_clicked(self, interaction: discord.Interaction):
-        select_location_view = SelectLocationView()
+        profile = await UserModel.get_profile(interaction.user.id)
+        select_location_view = SelectLocationView(unlocked_planets=profile.unlocked_planets)
         await interaction.response.edit_message(
             content="Select a location to travel to.",
             view=select_location_view
@@ -159,10 +160,13 @@ class ScenarioView(SubmenuView):
         self.interaction_helper.on_interact_callback = self.on_interact_button_clicked
 
         files = await self.get_files(with_cursor=True)
+        (embed, scenario_file) = create_scenario_embed_and_file(self.profile)
+        if scenario_file:
+            files.append(scenario_file)
         await interaction.response.edit_message(
             content="",
             files=files,
-            embed=create_scenario_embed_and_file(self.profile),
+            embed=embed,
             attachments=[],
             view=self
         )
@@ -258,7 +262,7 @@ class ScenarioView(SubmenuView):
 
             return await interaction.response.edit_message(
                 content=f"You found:\n{formatted_yield}",
-                embed=create_scenario_embed_and_file(self.profile),
+                embed=embed,
                 files=files,
                 view=self
             )
@@ -285,8 +289,8 @@ class ScenarioView(SubmenuView):
         return plot.get(cursor_position)
 
     async def on_exit_button_clicked(self, interaction: discord.Interaction):
-        self.add_stage_one_buttons()
         self.remove_scenario_buttons()
+        self.add_stage_one_buttons()
 
         self.readd_back_button()
 

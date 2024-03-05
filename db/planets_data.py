@@ -1,6 +1,8 @@
 from typing import List
 
 from models.planets import PlanetModel
+from models.pyobjectid import PyObjectId
+from utils.level_calculator import xp_to_level
 
 
 class PlanetsData:
@@ -16,6 +18,15 @@ class PlanetsData:
         :return: List[PlanetModel]
         """
         return cls.get_instance().all_planets
+    
+    @classmethod
+    def get_planets_by_ids(cls, ids: List[PyObjectId]) -> List[PlanetModel]:
+        """
+        Get all the planets in the game
+
+        :return: List[PlanetModel]
+        """
+        return [planet for planet in cls.get_instance().all_planets if planet.id in ids]
 
     @classmethod
     def get_planet(cls, id: str) -> PlanetModel:

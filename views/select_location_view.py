@@ -6,13 +6,13 @@ import discord
 
 
 class SelectLocationView(SubmenuView):
-    def __init__(self, timeout=None):
+    def __init__(self, unlocked_planets: list = [], timeout=None):
         super().__init__(timeout=timeout)
 
         self.selected_planet = None
         self.selected_biome_index = None
 
-        planets = PlanetsData.get_planets()
+        planets = PlanetsData.get_planets_by_ids(unlocked_planets)
 
         self.planet_select = discord.ui.Select(
             placeholder="Select a planet",

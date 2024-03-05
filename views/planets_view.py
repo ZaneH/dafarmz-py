@@ -1,9 +1,13 @@
-from db.planets_data import PlanetsData
-from models.planets import build_biome_image_path
-from utils.embeds import create_planet_embed
-from views.pagination_view import PaginationView
+import logging
+import os
+
 import discord
 
+from db.planets_data import PlanetsData
+from utils.embeds import create_planet_embed
+from views.pagination_view import PaginationView
+
+logger = logging.getLogger(__name__)
 
 class PlanetsView(PaginationView):
     def __init__(self, timeout=None):
@@ -15,10 +19,14 @@ class PlanetsView(PaginationView):
 
     async def on_update_message(self, interaction: discord.Interaction):
         planet_bg = self.pagination.get_page()[0].preview_background
+        file = discord.File(planet_bg) if os.path.exists(planet_bg) else None
+        if not file:
+            logger.warning(f"File {planet_bg} does not exist")
+            
         await interaction.response.edit_message(
             content="",
             embed=create_planet_embed(
-                self.pagination.get_page(), discord.File(planet_bg)
+                self.pagination.get_page()[0], file
             ),
             view=self,
             files=[],

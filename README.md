@@ -1,18 +1,19 @@
-# DaFarmz 2.0
+# EdenRPG
 
-Using the lessons learned from 1.0, here is the next iteration of DaFarmz.
-An idle farming game for Discord using [Cup Nooble's Sprout Lands](https://cupnooble.itch.io/sprout-lands-asset-pack) for the art.
+- https://github.com/ZaneH/edenrpg-bot
+
+Using the lessons learned from DaFarmz, here is the new and improved version of the game.
 
 Invite the bot using [this link](https://discord.com/api/oauth2/authorize?client_id=1141161773983088640&permissions=339008&scope=bot) or visit the home grown Discord server [here](https://discord.gg/pasxV2MTvW).
 
 ## Quickstart
     
 ```bash
-git clone https://github.com/ZaneH/dafarmz-py.git
-cd dafarmz-py
+git clone https://github.com/ZaneH/edenrpg-bot.git
+cd edenrpg-bot
 
-conda create -n dafarmz-py python=3.10 -y
-conda activate dafarmz-py
+conda create -n edenrpg python=3.10 -y
+conda activate edenrpg
 pip install -r requirements.txt
 
 # Start a MongoDB instance
