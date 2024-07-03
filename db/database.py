@@ -7,8 +7,8 @@ class Database:
     def __init__(self) -> None:
         load_dotenv()
 
-        MONGO_URI = os.getenv("MONGO_URI")
-        self.client = AsyncIOMotorClient(MONGO_URI)
+        MONGO_URL = os.getenv("MONGO_URL")
+        self.client = AsyncIOMotorClient(MONGO_URL)
         self._instance = None
 
     @classmethod
