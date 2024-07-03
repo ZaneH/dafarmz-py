@@ -29,7 +29,7 @@ def create_farm_embed(farm_owner_name: str):
     return embed
 
 
-def create_scenario_embed_and_file(profile: UserModel):
+def create_scenario_embed_and_file(profile: UserModel, add_thumbnail=False, add_unlocked_planets=False):
     unlocked_planets_summary = ""
     for planet_id in profile.unlocked_planets:
         planet = PlanetsData.get_planet(planet_id)
@@ -39,20 +39,28 @@ def create_scenario_embed_and_file(profile: UserModel):
     # TODO: Put something here, energy, description of the planet, requirements to unlock, rewards, etc.
     last_planet_id = profile.config.last_planet_id
     last_biome_index = profile.config.last_biome_index
-    biome = None
+    energy = profile.energy
     planet = PlanetsData.get_planet(last_planet_id)
     biome = planet.biomes[last_biome_index]
 
     current_selection = f"{planet.name} – {biome.name}" if planet else "None"
+    text_description = f"""**__Current Selection__**
+{current_selection}
+        
+**Description**: {biome.description}"""
+    
+    if add_unlocked_planets:
+        text_description += f"""\n\n**__Unlocked Planets__**
+{unlocked_planets_summary}"""
 
     embed = discord.Embed(
         title=f"Go Exploring",
-        description=f"**__Current Selection__**:\n{current_selection}\n\n**Description**: {biome.description}\n\n**__Unlocked Planets__**\n{unlocked_planets_summary}",
+        description=text_description,
         color=discord.Color.embed_background()
     )
 
     bg = planet.preview_background if planet else None
-    if bg and os.path.exists(bg):
+    if add_thumbnail and bg and os.path.exists(bg):
         file = discord.File(bg)
         embed.set_thumbnail(url=f"attachment://{file.filename.split('/')[-1]}")
     else:

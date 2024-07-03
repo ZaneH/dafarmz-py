@@ -256,14 +256,13 @@ class ScenarioView(SubmenuView):
                 )
 
             files = await self.get_files(with_cursor=True)
-            (embed, file) = create_scenario_embed_and_file(self.profile)
-            if file:
-                files.append(file)
-
+            (embed, _) = create_scenario_embed_and_file(self.profile)
+            
             return await interaction.response.edit_message(
                 content=f"You found:\n{formatted_yield}",
                 embed=embed,
-                files=files,
+                file=files[0],
+                attachments=[],
                 view=self
             )
 

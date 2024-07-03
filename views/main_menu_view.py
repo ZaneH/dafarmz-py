@@ -205,7 +205,7 @@ class MainMenuView(discord.ui.View):
         profile = await UserModel.get_profile(interaction.user.id)
         scenario_view = ScenarioView(profile)
         scenario_view.profile = profile
-        (embed, file) = create_scenario_embed_and_file(profile)
+        (embed, file) = create_scenario_embed_and_file(profile, add_thumbnail=True)
         await interaction.message.edit(
             embed=embed,
             file=file,
