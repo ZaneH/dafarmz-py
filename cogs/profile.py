@@ -3,7 +3,7 @@ import logging
 import discord
 from discord.ext import commands
 
-from models.plots import PlotModel
+from models.plots import FarmModel
 from models.users import UserModel
 from utils.embeds import create_profile_embed, inventory_to_embed
 from utils.emoji_map import EMOJI_MAP
@@ -23,9 +23,9 @@ class Profile(commands.Cog):
     @commands.slash_command(name="register", description="Get started with EdenRPG!")
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def register(self, ctx: discord.context.ApplicationContext):
-        farm = await PlotModel.find_by_discord_id(ctx.author.id)
+        farm = await FarmModel.find_by_discord_id(ctx.author.id)
         if not farm:
-            farm = PlotModel(discord_id=str(ctx.author.id), plot={})
+            farm = FarmModel(discord_id=str(ctx.author.id), plot={})
             await farm.save_plot()
 
         user = await UserModel.get_profile(ctx.author.id)

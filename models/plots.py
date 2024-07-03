@@ -282,21 +282,6 @@ class PlotModel(BaseModel):
 
         return True
 
-    async def save_plot(self):
-        if (self.discord_id is None):
-            logger.warning(
-                "Attempted to save plot without a discord_id. This is likely a bug."
-            )
-
-            return
-
-        collection = Database.get_instance().get_collection(COLLECTION_NAME)
-        await collection.update_one(
-            {"_id": self.id},
-            {"$set": {"plot": {k: v.model_dump() for k, v in self.plot.items()}}},
-            upsert=True
-        )
-
     class Config:
         arbitrary_types_allowed = True
         from_attributes = True
@@ -320,6 +305,21 @@ class FarmModel(PlotModel):
         })
 
         return cls(**doc) if doc else None
+
+    async def save_plot(self):
+        if (self.discord_id is None):
+            logger.warning(
+                "Attempted to save plot without a discord_id. This is likely a bug."
+            )
+
+            return
+
+        collection = Database.get_instance().get_collection(COLLECTION_NAME)
+        await collection.update_one(
+            {"_id": self.id},
+            {"$set": {"plot": {k: v.model_dump() for k, v in self.plot.items()}}},
+            upsert=True
+        )
 
     class Config:
         arbitrary_types_allowed = True

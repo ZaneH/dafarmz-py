@@ -18,7 +18,7 @@ class PlanetsData:
         :return: List[PlanetModel]
         """
         return cls.get_instance().all_planets
-    
+
     @classmethod
     def get_planets_by_ids(cls, ids: List[PyObjectId]) -> List[PlanetModel]:
         """
