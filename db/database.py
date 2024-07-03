@@ -17,7 +17,7 @@ class Database:
             cls._instance = cls()
         return cls._instance
 
-    def get_collection(self, collection_name, database_name="dafarmz"):
+    def get_collection(self, collection_name, database_name="edenrpg_db"):
         db = self.client.get_database(database_name)
 
         return db.get_collection(collection_name)
